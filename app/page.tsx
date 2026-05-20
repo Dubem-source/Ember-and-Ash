@@ -628,7 +628,7 @@ export default function HomePage() {
         }}
       >
         <p style={{ fontSize: "13px", color: "#3D3028" }}>
-          © 2024 Ember & Ash Restaurant ·{" "}
+          © 2026 Ember & Ash Restaurant ·{" "}
           <a
             href={`tel:${RESTAURANT_INFO.phone}`}
             style={{ color: "#8A7566", textDecoration: "none" }}

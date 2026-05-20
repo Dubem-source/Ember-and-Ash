@@ -45,11 +45,12 @@ export default function MenuPage() {
             Our Menu
           </h1>
           <div
-            className="menu-search-wrapper w-full max-w-full"
+            className="font-display menu-title"
             style={{
-              position: "relative",
-              maxWidth: "480px",
-              marginBottom: "24px",
+              fontSize: "48px",
+              fontWeight: 900,
+              color: "#F5EDD8",
+              marginBottom: "32px",
             }}
           >
             <Search
