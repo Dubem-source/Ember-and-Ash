@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus, Check, Clock, Flame } from "lucide-react";
+import { motion } from "framer-motion";
 import { MenuItem } from "@/types";
 import { useCartStore } from "@/store/cartStore";
 import { formatPrice, getSpiceLevelLabel } from "@/lib/utils";
@@ -26,9 +27,13 @@ export default function MenuCard({ item }: MenuCardProps) {
   const spiceColors = ["#8A7566", "#D4A843", "#E8541A", "#CC2200"];
 
   return (
-    <div
+    <motion.div
       className="card"
       style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}
+      initial={{ opacity: 0, y: 18, scale: 0.996 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
     >
       {/* Image */}
       <div style={{ position: "relative", height: "180px", overflow: "hidden" }}>
@@ -126,6 +131,6 @@ export default function MenuCard({ item }: MenuCardProps) {
           </button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

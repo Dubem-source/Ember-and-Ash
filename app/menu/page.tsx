@@ -45,12 +45,13 @@ export default function MenuPage() {
             Our Menu
           </h1>
           <div
-            className="font-display menu-title"
+            className="font-display menu-title menu-search-wrapper"
             style={{
               fontSize: "48px",
               fontWeight: 900,
               color: "#F5EDD8",
               marginBottom: "32px",
+              position: "relative",
             }}
           >
             <Search
@@ -67,6 +68,7 @@ export default function MenuPage() {
               className="input-field w-full max-w-full"
               type="text"
               placeholder="Search dishes..."
+              aria-label="Search dishes"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               style={{ paddingLeft: "44px" }}
