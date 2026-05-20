@@ -1,0 +1,322 @@
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap");
+@import "tailwindcss";
+
+:root {
+  --ember: #e8541a;
+  --ember-dark: #c4400e;
+  --ember-light: #ff7040;
+  --ash: #1a1612;
+  --ash-mid: #2a221c;
+  --ash-light: #3d3028;
+  --cream: #f5edd8;
+  --cream-dark: #ead9be;
+  --gold: #d4a843;
+  --gold-light: #f0c860;
+  --muted: #8a7566;
+  --surface: #221c16;
+  --surface-light: #2e261e;
+  --white: #fdfaf5;
+
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-body: "DM Sans", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html {
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--ash);
+  color: var(--cream);
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--ash-mid);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--ember);
+  border-radius: 3px;
+}
+
+.text-ember {
+  color: var(--ember);
+}
+.text-gold {
+  color: var(--gold);
+}
+.text-cream {
+  color: var(--cream);
+}
+.text-muted {
+  color: var(--muted);
+}
+.bg-ember {
+  background-color: var(--ember);
+}
+.bg-ash {
+  background-color: var(--ash);
+}
+.bg-surface {
+  background-color: var(--surface);
+}
+.bg-surface-light {
+  background-color: var(--surface-light);
+}
+.border-ember {
+  border-color: var(--ember);
+}
+.border-gold {
+  border-color: var(--gold);
+}
+.border-ash-light {
+  border-color: var(--ash-light);
+}
+
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.4;
+}
+
+.glow-ember {
+  box-shadow: 0 0 30px rgba(232, 84, 26, 0.3);
+}
+
+.btn-ember {
+  background-color: var(--ember);
+  color: white;
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+}
+.btn-ember:hover {
+  background-color: var(--ember-light);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(232, 84, 26, 0.4);
+}
+.btn-ember:active {
+  transform: translateY(0);
+}
+
+.btn-ghost {
+  border: 1px solid var(--ash-light);
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  background: transparent;
+}
+.btn-ghost:hover {
+  border-color: var(--ember);
+  color: var(--ember);
+}
+
+.card {
+  background-color: var(--surface);
+  border: 1px solid var(--ash-light);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+.card:hover {
+  border-color: rgba(232, 84, 26, 0.3);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.input-field {
+  background-color: var(--ash-mid);
+  border: 1px solid var(--ash-light);
+  color: var(--cream);
+  font-family: var(--font-body);
+  border-radius: 8px;
+  padding: 12px 16px;
+  width: 100%;
+  transition: border-color 0.2s;
+  outline: none;
+}
+.input-field:focus {
+  border-color: var(--ember);
+}
+.input-field::placeholder {
+  color: var(--muted);
+}
+.input-field option {
+  background-color: var(--ash-mid);
+  color: var(--cream);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ember);
+}
+
+.divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--ash-light),
+    transparent
+  );
+}
+
+.page-enter {
+  animation: fadeUp 0.4s ease forwards;
+}
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-ember {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+.pulse-ember {
+  animation: pulse-ember 1.5s ease-in-out infinite;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+.slide-in {
+  animation: slideIn 0.3s ease forwards;
+}
+
+@media (max-width: 768px) {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  .page-shell {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .section-shell {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .mobile-stack {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .mobile-stack > * {
+    width: 100% !important;
+  }
+
+  .mobile-grid-1 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .mobile-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .mobile-hide {
+    display: none !important;
+  }
+
+  .mobile-full {
+    width: 100% !important;
+  }
+
+  .mobile-small-gap {
+    gap: 12px !important;
+  }
+
+  .mobile-card-tight {
+    padding: 18px !important;
+    border-radius: 14px !important;
+  }
+
+  .mobile-title {
+    font-size: clamp(30px, 9vw, 44px) !important;
+    line-height: 1.05 !important;
+  }
+
+  .mobile-subtitle {
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+  }
+
+  .btn-ember,
+  .btn-ghost {
+    min-height: 46px;
+  }
+
+  .input-field {
+    min-height: 46px;
+  }
+}
+
+@media (max-width: 480px) {
+  .mobile-compact-gap {
+    gap: 10px !important;
+  }
+
+  .mobile-pill {
+    font-size: 11px !important;
+    padding: 6px 10px !important;
+  }
+}

@@ -1,0 +1,1385 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import {
+  LayoutDashboard,
+  ShoppingBag,
+  Calendar,
+  TrendingUp,
+  Users,
+  Clock,
+  ChefHat,
+  Truck,
+  CheckCircle,
+  XCircle,
+  Eye,
+  Bell,
+  BarChart2,
+  Flame,
+} from "lucide-react";
+import { MENU_ITEMS, RESTAURANT_INFO } from "@/lib/data";
+import { formatPrice } from "@/lib/utils";
+import { useAuthStore } from "@/store/authStore";
+
+type AdminTab = "overview" | "orders" | "reservations" | "menu";
+
+const ORDERS = [
+  {
+    id: "EA-K9X2-MN1P",
+    customer: "Chiamaka Obi",
+    items: "Ember Jollof Rice ×2, Suya Skewers ×1",
+    total: 12100,
+    type: "Delivery",
+    status: "preparing",
+    time: "12 mins ago",
+    phone: "+234 801 234 5678",
+  },
+  {
+    id: "EA-L8W3-AB2Q",
+    customer: "Emeka Nwosu",
+    items: "T-Bone Steak ×1, Chapman ×2",
+    total: 22100,
+    type: "Dine-In",
+    status: "confirmed",
+    time: "25 mins ago",
+    phone: "+234 802 345 6789",
+  },
+  {
+    id: "EA-M7V4-CD3R",
+    customer: "Tunde Adeyemi",
+    items: "Peppered Snail ×2, Pounded Yam ×1",
+    total: 10200,
+    type: "Pickup",
+    status: "ready",
+    time: "32 mins ago",
+    phone: "+234 803 456 7890",
+  },
+  {
+    id: "EA-N6U5-EF4S",
+    customer: "Ngozi Eze",
+    items: "Egusi Soup ×1, Eba ×1, Zobo Royale ×2",
+    total: 9300,
+    type: "Delivery",
+    status: "out-for-delivery",
+    time: "48 mins ago",
+    phone: "+234 804 567 8901",
+  },
+  {
+    id: "EA-O5T6-GH5T",
+    customer: "Babatunde Lagos",
+    items: "Asun ×1, Lamb Chops ×1",
+    total: 17500,
+    type: "Delivery",
+    status: "delivered",
+    time: "1 hr ago",
+    phone: "+234 805 678 9012",
+  },
+  {
+    id: "EA-P4S7-IJ6U",
+    customer: "Adaeze Umeh",
+    items: "Catfish Pepper Soup ×1, Lava Cake ×2",
+    total: 12100,
+    type: "Dine-In",
+    status: "pending",
+    time: "2 mins ago",
+    phone: "+234 806 789 0123",
+  },
+];
+
+const RESERVATIONS = [
+  {
+    id: "RES-AA1B",
+    name: "Chinedu Okeke",
+    date: "2024-12-28",
+    time: "7:00 PM",
+    guests: 4,
+    status: "confirmed",
+    requests: "Anniversary dinner, rose petals please",
+  },
+  {
+    id: "RES-BB2C",
+    name: "Fatima Abubakar",
+    date: "2024-12-28",
+    time: "8:00 PM",
+    guests: 6,
+    status: "pending",
+    requests: "Vegetarian options needed",
+  },
+  {
+    id: "RES-CC3D",
+    name: "Oluwafemi Balogun",
+    date: "2024-12-29",
+    time: "1:00 PM",
+    guests: 2,
+    status: "confirmed",
+    requests: "",
+  },
+  {
+    id: "RES-DD4E",
+    name: "Amara Okafor",
+    date: "2024-12-29",
+    time: "6:30 PM",
+    guests: 10,
+    status: "pending",
+    requests: "Birthday celebration, need cake service",
+  },
+];
+
+const STATUS_CONFIG: Record<
+  string,
+  { label: string; color: string; bg: string }
+> = {
+  pending: { label: "Pending", color: "#D4A843", bg: "rgba(212,168,67,0.12)" },
+  confirmed: {
+    label: "Confirmed",
+    color: "#60A5FA",
+    bg: "rgba(96,165,250,0.12)",
+  },
+  preparing: {
+    label: "Preparing",
+    color: "#E8541A",
+    bg: "rgba(232,84,26,0.12)",
+  },
+  ready: { label: "Ready", color: "#A78BFA", bg: "rgba(167,139,250,0.12)" },
+  "out-for-delivery": {
+    label: "On the Way",
+    color: "#34D399",
+    bg: "rgba(52,211,153,0.12)",
+  },
+  delivered: {
+    label: "Delivered",
+    color: "#6EE7B7",
+    bg: "rgba(110,231,183,0.12)",
+  },
+  cancelled: {
+    label: "Cancelled",
+    color: "#F87171",
+    bg: "rgba(248,113,113,0.12)",
+  },
+};
+
+export default function AdminPage() {
+  const { isAuthenticated } = useAuthStore();
+  const [tab, setTab] = useState<AdminTab>("overview");
+  const [orders, setOrders] = useState(ORDERS);
+  const [reservations, setReservations] = useState(RESERVATIONS);
+
+  const totalRevenue = orders
+    .filter((o) => o.status === "delivered")
+    .reduce((sum, o) => sum + o.total, 0);
+  const pendingOrders = orders.filter((o) => o.status === "pending").length;
+  const todayReservations = reservations.length;
+  const activeOrders = orders.filter(
+    (o) => !["delivered", "cancelled"].includes(o.status),
+  ).length;
+
+  const updateOrderStatus = (id: string, status: string) => {
+    setOrders(orders.map((o) => (o.id === id ? { ...o, status } : o)));
+  };
+
+  const updateReservationStatus = (id: string, status: string) => {
+    setReservations(
+      reservations.map((r) => (r.id === id ? { ...r, status } : r)),
+    );
+  };
+
+  const TABS = [
+    { id: "overview", label: "Overview", icon: <LayoutDashboard size={16} /> },
+    {
+      id: "orders",
+      label: "Orders",
+      icon: <ShoppingBag size={16} />,
+      badge: activeOrders,
+    },
+    {
+      id: "reservations",
+      label: "Reservations",
+      icon: <Calendar size={16} />,
+      badge: reservations.filter((r) => r.status === "pending").length,
+    },
+    { id: "menu", label: "Menu Items", icon: <ChefHat size={16} /> },
+  ] as const;
+
+  // Show sign-in prompt if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div
+        style={{
+          paddingTop: "64px",
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "40px 24px",
+        }}
+      >
+        <div
+          style={{
+            width: "100%",
+            maxWidth: "480px",
+            background: "#221C16",
+            border: "1px solid #3D3028",
+            borderRadius: "16px",
+            padding: "40px",
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              width: "80px",
+              height: "80px",
+              borderRadius: "50%",
+              background: "rgba(232,84,26,0.12)",
+              border: "2px solid #E8541A",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto 24px",
+            }}
+          >
+            <Flame size={40} color="#E8541A" />
+          </div>
+          <h1
+            className="font-display"
+            style={{
+              fontSize: "26px",
+              fontWeight: 700,
+              color: "#F5EDD8",
+              marginBottom: "12px",
+            }}
+          >
+            Admin Dashboard
+          </h1>
+          <p
+            style={{
+              fontSize: "14px",
+              color: "#8A7566",
+              marginBottom: "32px",
+              lineHeight: "1.6",
+            }}
+          >
+            Sign in to access the admin dashboard and manage orders, reservations, and menu items.
+          </p>
+          <Link href="/auth" style={{ textDecoration: "none" }}>
+            <button
+              style={{
+                width: "100%",
+                padding: "14px 24px",
+                background: "#E8541A",
+                border: "none",
+                borderRadius: "10px",
+                color: "white",
+                fontWeight: 700,
+                fontSize: "14px",
+                cursor: "pointer",
+              }}
+            >
+              Sign In to Admin
+            </button>
+          </Link>
+          <Link href="/" style={{ textDecoration: "none", display: "block", marginTop: "16px" }}>
+            <button
+              style={{
+                width: "100%",
+                padding: "12px 24px",
+                background: "transparent",
+                border: "1px solid #3D3028",
+                borderRadius: "10px",
+                color: "#8A7566",
+                fontWeight: 600,
+                fontSize: "14px",
+                cursor: "pointer",
+              }}
+            >
+              Back to Home
+            </button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        paddingTop: "64px",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      {/* Admin header */}
+      <div
+        style={{
+          background: "#221C16",
+          borderBottom: "1px solid #3D3028",
+          padding: "24px",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "1300px",
+            margin: "0 auto",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: "16px",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div
+              style={{
+                width: "40px",
+                height: "40px",
+                borderRadius: "10px",
+                background: "rgba(212,168,67,0.15)",
+                border: "1px solid rgba(212,168,67,0.3)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Flame size={20} color="#D4A843" />
+            </div>
+            <div>
+              <h1
+                className="font-display"
+                style={{ fontSize: "22px", fontWeight: 700, color: "#F5EDD8" }}
+              >
+                Admin Dashboard Demo
+              </h1>
+              <p style={{ fontSize: "12px", color: "#8A7566" }}>
+                Ember & Ash Restaurant
+              </p>
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                fontSize: "12px",
+                color: "#25D366",
+              }}
+            >
+              <span
+                className="pulse-ember"
+                style={{
+                  width: "7px",
+                  height: "7px",
+                  borderRadius: "50%",
+                  background: "#25D366",
+                  display: "inline-block",
+                }}
+              />
+              Restaurant Open
+            </div>
+            <button
+              style={{
+                background: "transparent",
+                border: "1px solid #3D3028",
+                borderRadius: "8px",
+                padding: "8px",
+                cursor: "pointer",
+                color: "#8A7566",
+                display: "flex",
+                position: "relative",
+              }}
+            >
+              <Bell size={18} />
+              {pendingOrders > 0 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "-4px",
+                    right: "-4px",
+                    background: "#E8541A",
+                    color: "white",
+                    borderRadius: "50%",
+                    width: "16px",
+                    height: "16px",
+                    fontSize: "10px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: 700,
+                  }}
+                >
+                  {pendingOrders}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div
+        style={{
+          maxWidth: "1300px",
+          margin: "0 auto",
+          width: "100%",
+          padding: "0 24px",
+          flex: 1,
+        }}
+      >
+        {/* Tabs */}
+        <div
+          style={{
+            display: "flex",
+            gap: "4px",
+            borderBottom: "1px solid #3D3028",
+            marginBottom: "32px",
+            overflowX: "auto",
+            paddingTop: "8px",
+          }}
+        >
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              style={{
+                padding: "12px 20px",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                borderBottom:
+                  tab === t.id ? "2px solid #E8541A" : "2px solid transparent",
+                color: tab === t.id ? "#F5EDD8" : "#8A7566",
+                fontSize: "14px",
+                fontWeight: tab === t.id ? 600 : 400,
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                transition: "all 0.2s",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {t.icon} {t.label}
+              {"badge" in t && t.badge > 0 && (
+                <span
+                  style={{
+                    background: "#E8541A",
+                    color: "white",
+                    borderRadius: "10px",
+                    padding: "1px 6px",
+                    fontSize: "11px",
+                    fontWeight: 700,
+                  }}
+                >
+                  {t.badge}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* OVERVIEW TAB */}
+        {tab === "overview" && (
+          <div className="page-enter">
+            {/* Stats grid */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gap: "16px",
+                marginBottom: "32px",
+              }}
+            >
+              {[
+                {
+                  label: "Today's Revenue",
+                  value: formatPrice(totalRevenue),
+                  icon: <TrendingUp size={20} />,
+                  color: "#D4A843",
+                  sub: "From delivered orders",
+                },
+                {
+                  label: "Active Orders",
+                  value: activeOrders,
+                  icon: <ShoppingBag size={20} />,
+                  color: "#E8541A",
+                  sub: `${pendingOrders} pending action`,
+                },
+                {
+                  label: "Today's Reservations",
+                  value: todayReservations,
+                  icon: <Calendar size={20} />,
+                  color: "#60A5FA",
+                  sub: `${reservations.filter((r) => r.status === "pending").length} awaiting confirm`,
+                },
+                {
+                  label: "Total Customers",
+                  value: orders.length,
+                  icon: <Users size={20} />,
+                  color: "#34D399",
+                  sub: "Today's unique orders",
+                },
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  style={{
+                    background: "#221C16",
+                    border: "1px solid #3D3028",
+                    borderRadius: "12px",
+                    padding: "20px",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      marginBottom: "12px",
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontSize: "12px",
+                        color: "#8A7566",
+                        letterSpacing: "0.08em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {stat.label}
+                    </p>
+                    <div style={{ color: stat.color }}>{stat.icon}</div>
+                  </div>
+                  <p
+                    className="font-display"
+                    style={{
+                      fontSize: "28px",
+                      fontWeight: 900,
+                      color: "#F5EDD8",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    {stat.value}
+                  </p>
+                  <p style={{ fontSize: "11px", color: "#8A7566" }}>
+                    {stat.sub}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Recent Orders + Popular Items */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 320px",
+                gap: "24px",
+              }}
+            >
+              <div
+                style={{
+                  background: "#221C16",
+                  border: "1px solid #3D3028",
+                  borderRadius: "14px",
+                  padding: "24px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginBottom: "20px",
+                  }}
+                >
+                  <h3
+                    className="font-display"
+                    style={{
+                      fontSize: "20px",
+                      fontWeight: 700,
+                      color: "#F5EDD8",
+                    }}
+                  >
+                    Recent Orders
+                  </h3>
+                  <button
+                    onClick={() => setTab("orders")}
+                    style={{
+                      fontSize: "12px",
+                      color: "#E8541A",
+                      background: "transparent",
+                      border: "none",
+                      cursor: "pointer",
+                      fontWeight: 600,
+                    }}
+                  >
+                    View All
+                  </button>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "12px",
+                  }}
+                >
+                  {orders.slice(0, 5).map((order) => {
+                    const cfg =
+                      STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
+                    return (
+                      <div
+                        key={order.id}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "12px",
+                          background: "#2A221C",
+                          borderRadius: "10px",
+                          flexWrap: "wrap",
+                          gap: "8px",
+                        }}
+                      >
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p
+                            style={{
+                              fontWeight: 600,
+                              fontSize: "14px",
+                              color: "#F5EDD8",
+                              marginBottom: "2px",
+                            }}
+                          >
+                            {order.customer}
+                          </p>
+                          <p
+                            style={{
+                              fontSize: "12px",
+                              color: "#8A7566",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {order.items}
+                          </p>
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "10px",
+                            flexShrink: 0,
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: "14px",
+                              fontWeight: 700,
+                              color: "#F5EDD8",
+                            }}
+                          >
+                            {formatPrice(order.total)}
+                          </span>
+                          <span
+                            className="badge"
+                            style={{ background: cfg.bg, color: cfg.color }}
+                          >
+                            {cfg.label}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Popular Items */}
+              <div
+                style={{
+                  background: "#221C16",
+                  border: "1px solid #3D3028",
+                  borderRadius: "14px",
+                  padding: "24px",
+                }}
+              >
+                <h3
+                  className="font-display"
+                  style={{
+                    fontSize: "20px",
+                    fontWeight: 700,
+                    color: "#F5EDD8",
+                    marginBottom: "20px",
+                  }}
+                >
+                  Popular Today
+                </h3>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "12px",
+                  }}
+                >
+                  {[
+                    { name: "Ember Jollof Rice", count: 24, pct: 90 },
+                    { name: "Suya Skewers", count: 19, pct: 72 },
+                    { name: "T-Bone Steak", count: 14, pct: 52 },
+                    { name: "Peppered Snail", count: 11, pct: 42 },
+                    { name: "Chapman", count: 31, pct: 100 },
+                  ].map((item) => (
+                    <div key={item.name}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        <span style={{ fontSize: "13px", color: "#F5EDD8" }}>
+                          {item.name}
+                        </span>
+                        <span style={{ fontSize: "12px", color: "#8A7566" }}>
+                          {item.count} orders
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          height: "4px",
+                          background: "#3D3028",
+                          borderRadius: "2px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            height: "100%",
+                            width: `${item.pct}%`,
+                            background: "#E8541A",
+                            borderRadius: "2px",
+                            transition: "width 1s ease",
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ORDERS TAB */}
+        {tab === "orders" && (
+          <div className="page-enter">
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "24px",
+                flexWrap: "wrap",
+                gap: "12px",
+              }}
+            >
+              <h2
+                className="font-display"
+                style={{ fontSize: "28px", fontWeight: 700, color: "#F5EDD8" }}
+              >
+                All Orders
+              </h2>
+              <div style={{ display: "flex", gap: "8px" }}>
+                {["all", "pending", "preparing", "delivered"].map((f) => (
+                  <button
+                    key={f}
+                    style={{
+                      padding: "6px 14px",
+                      borderRadius: "20px",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      border: "1px solid #3D3028",
+                      background: "transparent",
+                      color: "#8A7566",
+                      textTransform: "capitalize",
+                    }}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+            >
+              {orders.map((order) => {
+                const cfg =
+                  STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
+                return (
+                  <div
+                    key={order.id}
+                    style={{
+                      background: "#221C16",
+                      border: "1px solid #3D3028",
+                      borderRadius: "12px",
+                      padding: "20px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        flexWrap: "wrap",
+                        gap: "12px",
+                        marginBottom: "12px",
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "10px",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          <span
+                            className="font-display"
+                            style={{
+                              fontSize: "16px",
+                              fontWeight: 700,
+                              color: "#D4A843",
+                            }}
+                          >
+                            {order.id}
+                          </span>
+                          <span
+                            className="badge"
+                            style={{ background: cfg.bg, color: cfg.color }}
+                          >
+                            {cfg.label}
+                          </span>
+                          <span
+                            className="badge"
+                            style={{ background: "#3D3028", color: "#8A7566" }}
+                          >
+                            {order.type}
+                          </span>
+                        </div>
+                        <p
+                          style={{
+                            fontWeight: 600,
+                            fontSize: "15px",
+                            color: "#F5EDD8",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          {order.customer}
+                        </p>
+                        <p style={{ fontSize: "13px", color: "#8A7566" }}>
+                          {order.items}
+                        </p>
+                        <p
+                          style={{
+                            fontSize: "12px",
+                            color: "#3D3028",
+                            marginTop: "4px",
+                          }}
+                        >
+                          {order.time}
+                        </p>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        <p
+                          className="font-display"
+                          style={{
+                            fontSize: "20px",
+                            fontWeight: 700,
+                            color: "#E8541A",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          {formatPrice(order.total)}
+                        </p>
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: "8px",
+                            flexWrap: "wrap",
+                            justifyContent: "flex-end",
+                          }}
+                        >
+                          {order.status === "pending" && (
+                            <button
+                              onClick={() =>
+                                updateOrderStatus(order.id, "confirmed")
+                              }
+                              style={{
+                                padding: "6px 14px",
+                                borderRadius: "6px",
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                background: "#60A5FA",
+                                color: "white",
+                                border: "none",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Confirm
+                            </button>
+                          )}
+                          {order.status === "confirmed" && (
+                            <button
+                              onClick={() =>
+                                updateOrderStatus(order.id, "preparing")
+                              }
+                              style={{
+                                padding: "6px 14px",
+                                borderRadius: "6px",
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                background: "#E8541A",
+                                color: "white",
+                                border: "none",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Start Preparing
+                            </button>
+                          )}
+                          {order.status === "preparing" && (
+                            <button
+                              onClick={() =>
+                                updateOrderStatus(order.id, "ready")
+                              }
+                              style={{
+                                padding: "6px 14px",
+                                borderRadius: "6px",
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                background: "#A78BFA",
+                                color: "white",
+                                border: "none",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Mark Ready
+                            </button>
+                          )}
+                          {order.status === "ready" && (
+                            <button
+                              onClick={() =>
+                                updateOrderStatus(order.id, "out-for-delivery")
+                              }
+                              style={{
+                                padding: "6px 14px",
+                                borderRadius: "6px",
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                background: "#34D399",
+                                color: "#1A1612",
+                                border: "none",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Dispatched
+                            </button>
+                          )}
+                          {order.status === "out-for-delivery" && (
+                            <button
+                              onClick={() =>
+                                updateOrderStatus(order.id, "delivered")
+                              }
+                              style={{
+                                padding: "6px 14px",
+                                borderRadius: "6px",
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                background: "#25D366",
+                                color: "white",
+                                border: "none",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Delivered ✓
+                            </button>
+                          )}
+                          {!["delivered", "cancelled"].includes(
+                            order.status,
+                          ) && (
+                            <button
+                              onClick={() =>
+                                updateOrderStatus(order.id, "cancelled")
+                              }
+                              style={{
+                                padding: "6px 14px",
+                                borderRadius: "6px",
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                background: "transparent",
+                                color: "#F87171",
+                                border: "1px solid rgba(248,113,113,0.3)",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        borderTop: "1px solid #3D3028",
+                        paddingTop: "10px",
+                        display: "flex",
+                        gap: "16px",
+                      }}
+                    >
+                      <a
+                        href={`tel:${order.phone}`}
+                        style={{
+                          textDecoration: "none",
+                          fontSize: "12px",
+                          color: "#8A7566",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px",
+                        }}
+                      >
+                        📞 {order.phone}
+                      </a>
+                      <a
+                        href={`https://wa.me/${order.phone.replace(/[\s\+]/g, "")}?text=${encodeURIComponent(`Hi ${order.customer}! Your order ${order.id} status: ${STATUS_CONFIG[order.status]?.label}`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          textDecoration: "none",
+                          fontSize: "12px",
+                          color: "#25D366",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px",
+                        }}
+                      >
+                        💬 WhatsApp customer
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* RESERVATIONS TAB */}
+        {tab === "reservations" && (
+          <div className="page-enter">
+            <h2
+              className="font-display"
+              style={{
+                fontSize: "28px",
+                fontWeight: 700,
+                color: "#F5EDD8",
+                marginBottom: "24px",
+              }}
+            >
+              Reservations
+            </h2>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+            >
+              {reservations.map((res) => (
+                <div
+                  key={res.id}
+                  style={{
+                    background: "#221C16",
+                    border: "1px solid #3D3028",
+                    borderRadius: "12px",
+                    padding: "20px",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      flexWrap: "wrap",
+                      gap: "12px",
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "10px",
+                          marginBottom: "6px",
+                        }}
+                      >
+                        <span
+                          className="font-display"
+                          style={{
+                            fontSize: "15px",
+                            fontWeight: 700,
+                            color: "#D4A843",
+                          }}
+                        >
+                          {res.id}
+                        </span>
+                        <span
+                          className="badge"
+                          style={{
+                            background:
+                              res.status === "confirmed"
+                                ? "rgba(52,211,153,0.12)"
+                                : "rgba(212,168,67,0.12)",
+                            color:
+                              res.status === "confirmed"
+                                ? "#34D399"
+                                : "#D4A843",
+                          }}
+                        >
+                          {res.status}
+                        </span>
+                      </div>
+                      <p
+                        style={{
+                          fontWeight: 700,
+                          fontSize: "17px",
+                          color: "#F5EDD8",
+                          marginBottom: "6px",
+                        }}
+                      >
+                        {res.name}
+                      </p>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "20px",
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: "13px",
+                            color: "#8A7566",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                        >
+                          <Calendar size={13} /> {res.date}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: "13px",
+                            color: "#8A7566",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                        >
+                          <Clock size={13} /> {res.time}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: "13px",
+                            color: "#8A7566",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                        >
+                          <Users size={13} /> {res.guests} guests
+                        </span>
+                      </div>
+                      {res.requests && (
+                        <p
+                          style={{
+                            fontSize: "13px",
+                            color: "#D4A843",
+                            marginTop: "8px",
+                            fontStyle: "italic",
+                          }}
+                        >
+                          📝 {res.requests}
+                        </p>
+                      )}
+                    </div>
+                    <div
+                      style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}
+                    >
+                      {res.status === "pending" && (
+                        <button
+                          onClick={() =>
+                            updateReservationStatus(res.id, "confirmed")
+                          }
+                          style={{
+                            padding: "8px 16px",
+                            borderRadius: "8px",
+                            fontSize: "13px",
+                            fontWeight: 600,
+                            background: "#34D399",
+                            color: "#1A1612",
+                            border: "none",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                          }}
+                        >
+                          <CheckCircle size={14} /> Confirm
+                        </button>
+                      )}
+                      {res.status !== "cancelled" && (
+                        <button
+                          onClick={() =>
+                            updateReservationStatus(res.id, "cancelled")
+                          }
+                          style={{
+                            padding: "8px 16px",
+                            borderRadius: "8px",
+                            fontSize: "13px",
+                            fontWeight: 600,
+                            background: "transparent",
+                            color: "#F87171",
+                            border: "1px solid rgba(248,113,113,0.3)",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                          }}
+                        >
+                          <XCircle size={14} /> Cancel
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* MENU TAB */}
+        {tab === "menu" && (
+          <div className="page-enter">
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "24px",
+                flexWrap: "wrap",
+                gap: "12px",
+              }}
+            >
+              <h2
+                className="font-display"
+                style={{ fontSize: "28px", fontWeight: 700, color: "#F5EDD8" }}
+              >
+                Menu Items
+              </h2>
+              <p style={{ fontSize: "13px", color: "#8A7566" }}>
+                {MENU_ITEMS.length} total items ·{" "}
+                {MENU_ITEMS.filter((i) => i.available).length} available
+              </p>
+            </div>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+                gap: "12px",
+              }}
+            >
+              {MENU_ITEMS.map((item) => (
+                <div
+                  key={item.id}
+                  style={{
+                    background: "#221C16",
+                    border: "1px solid #3D3028",
+                    borderRadius: "10px",
+                    padding: "14px",
+                    display: "flex",
+                    gap: "12px",
+                    alignItems: "center",
+                  }}
+                >
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    style={{
+                      width: "56px",
+                      height: "56px",
+                      borderRadius: "8px",
+                      objectFit: "cover",
+                      flexShrink: 0,
+                    }}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p
+                      style={{
+                        fontWeight: 600,
+                        fontSize: "14px",
+                        color: "#F5EDD8",
+                        marginBottom: "2px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {item.name}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "12px",
+                        color: "#8A7566",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {item.category}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: 700,
+                        color: "#E8541A",
+                      }}
+                    >
+                      {formatPrice(item.price)}
+                    </p>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "6px",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <span
+                      className="badge"
+                      style={{
+                        background: item.available
+                          ? "rgba(52,211,153,0.1)"
+                          : "rgba(248,113,113,0.1)",
+                        color: item.available ? "#34D399" : "#F87171",
+                      }}
+                    >
+                      {item.available ? "Live" : "Off"}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div style={{ height: "48px" }} />
+      </div>
+
+      <style>{`
+        @media (max-width: 900px) {
+          div[style*="grid-template-columns: 1fr 320px"] {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}

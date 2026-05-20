@@ -1,0 +1,1432 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useCartStore } from "@/store/cartStore";
+import { useAuthStore } from "@/store/authStore";
+import { hasAccounts } from "@/lib/demoAuth";
+import {
+  formatPrice,
+  generateOrderId,
+  buildWhatsAppOrderMessage,
+  getWhatsAppUrl,
+  calculateDeliveryFee,
+} from "@/lib/utils";
+import { RESTAURANT_INFO } from "@/lib/data";
+import { CustomerInfo } from "@/types";
+import {
+  ShoppingBag,
+  Truck,
+  MapPin,
+  CreditCard,
+  Banknote,
+  MessageCircle,
+  CheckCircle,
+  Minus,
+  Plus,
+  Trash2,
+} from "lucide-react";
+import Link from "next/link";
+import toast from "react-hot-toast";
+
+type Step = "cart" | "details" | "payment" | "confirm";
+type OrderType = "delivery" | "pickup" | "dine-in";
+type PaymentMethod = "card" | "cash" | "transfer";
+
+export default function OrderPage() {
+  const router = useRouter();
+  const { items, updateQuantity, removeItem, subtotal, clearCart } =
+    useCartStore();
+  const { user, isAuthenticated } = useAuthStore();
+  const [step, setStep] = useState<Step>("cart");
+  const [orderType, setOrderType] = useState<OrderType>("delivery");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
+  const [customer, setCustomer] = useState<CustomerInfo>({
+    name: "",
+    phone: "",
+    email: "",
+    address: "",
+  });
+  // Generate order ID on the client to avoid server/client hydration mismatch
+  const [orderId, setOrderId] = useState("");
+  useEffect(() => {
+    setOrderId(generateOrderId());
+  }, []);
+  const [loading, setLoading] = useState(false);
+  const [now, setNow] = useState(() => new Date());
+  const [paymentDetails, setPaymentDetails] = useState({
+    cardNumber: "",
+    expiry: "",
+    cvv: "",
+    cardholderName: "",
+  });
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setNow(new Date());
+    }, 60000);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const sub = subtotal();
+  const deliveryFee = orderType === "delivery" ? calculateDeliveryFee(sub) : 0;
+  const total = sub + deliveryFee;
+
+  const currentLagosHour = Number(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "Africa/Lagos",
+      hour: "2-digit",
+      hour12: false,
+    }).format(now),
+  );
+  const lagosDay = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Africa/Lagos",
+    weekday: "short",
+  }).format(now);
+  const isWeekend = lagosDay === "Sat" || lagosDay === "Sun";
+  const closingHour = isWeekend
+    ? RESTAURANT_INFO.closingHour.weekend
+    : RESTAURANT_INFO.closingHour.weekday;
+  const isRestaurantClosed = currentLagosHour >= closingHour;
+
+  const guardWhatsAppAccess = () => {
+    if (isAuthenticated) return true;
+    const hasAccount = hasAccounts();
+    toast.error(
+      hasAccount
+        ? "Please log in with your email and password first"
+        : "Please sign up first before using WhatsApp",
+    );
+    router.push("/auth?next=/order");
+    return false;
+  };
+
+  const handlePlaceOrder = async () => {
+    if (isRestaurantClosed) {
+      toast.error("We're closed for the day. Please try again tomorrow.");
+      return;
+    }
+
+    // Validate payment details based on method
+    if (paymentMethod === "card") {
+      if (!paymentDetails.cardholderName.trim()) {
+        toast.error("Please enter cardholder name");
+        return;
+      }
+      if (
+        !paymentDetails.cardNumber.trim() ||
+        paymentDetails.cardNumber.length < 13
+      ) {
+        toast.error("Please enter a valid card number");
+        return;
+      }
+      if (!paymentDetails.expiry.trim() || paymentDetails.expiry.length < 5) {
+        toast.error("Please enter expiry date (MM/YY)");
+        return;
+      }
+      if (!paymentDetails.cvv.trim() || paymentDetails.cvv.length < 3) {
+        toast.error("Please enter a valid CVV");
+        return;
+      }
+    }
+
+    setLoading(true);
+    await new Promise((r) => setTimeout(r, 1500));
+    setLoading(false);
+    setStep("confirm");
+    clearCart();
+    toast.success("Order placed successfully! 🔥");
+  };
+
+  const handleWhatsApp = () => {
+    if (!guardWhatsAppAccess()) return;
+    const msg = buildWhatsAppOrderMessage(
+      items,
+      total,
+      orderType,
+      customer.name,
+      customer.address,
+    );
+    window.open(getWhatsAppUrl(msg), "_blank");
+  };
+
+  if (step === "confirm") {
+    return (
+      <div
+        style={{
+          paddingTop: "64px",
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "80px 24px",
+        }}
+      >
+        <div style={{ textAlign: "center", maxWidth: "480px" }}>
+          <div
+            style={{
+              width: "80px",
+              height: "80px",
+              borderRadius: "50%",
+              background: "rgba(232,84,26,0.15)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto 24px",
+            }}
+          >
+            <CheckCircle size={40} color="#E8541A" />
+          </div>
+          <h1
+            className="font-display"
+            style={{
+              fontSize: "36px",
+              fontWeight: 800,
+              color: "#F5EDD8",
+              marginBottom: "12px",
+            }}
+          >
+            Order Confirmed!
+          </h1>
+          <p
+            style={{ color: "#8A7566", marginBottom: "8px", fontSize: "15px" }}
+          >
+            Your order{" "}
+            <span style={{ color: "#E8541A", fontWeight: 700 }}>
+              #{orderId}
+            </span>{" "}
+            has been received.
+          </p>
+          <p
+            style={{
+              color: "#8A7566",
+              marginBottom: "32px",
+              fontSize: "14px",
+              lineHeight: "1.6",
+            }}
+          >
+            We&apos;re firing up the kitchen. Estimated time:{" "}
+            <strong style={{ color: "#F5EDD8" }}>30–45 minutes</strong>
+          </p>
+          <div
+            style={{
+              display: "flex",
+              gap: "12px",
+              justifyContent: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <Link href="/tracking" style={{ textDecoration: "none" }}>
+              <button
+                className="btn-ember"
+                style={{
+                  padding: "12px 28px",
+                  borderRadius: "10px",
+                  fontSize: "14px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <Truck size={16} /> Track Order
+              </button>
+            </Link>
+            <Link href="/menu" style={{ textDecoration: "none" }}>
+              <button
+                className="btn-ghost"
+                style={{
+                  padding: "12px 28px",
+                  borderRadius: "10px",
+                  fontSize: "14px",
+                }}
+              >
+                Back to Menu
+              </button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="page-shell"
+      style={{ paddingTop: "64px", minHeight: "100vh" }}
+    >
+      <div
+        className="section-shell"
+        style={{ maxWidth: "1000px", margin: "0 auto", padding: "40px 24px" }}
+      >
+        {/* Header */}
+        <div style={{ marginBottom: "32px" }}>
+          <p className="section-label" style={{ marginBottom: "8px" }}>
+            Checkout
+          </p>
+          <h1
+            className="font-display"
+            style={{ fontSize: "40px", fontWeight: 800, color: "#F5EDD8" }}
+          >
+            Your Order
+          </h1>
+        </div>
+
+        {/* Steps */}
+        <div
+          className="mobile-stack mobile-small-gap"
+          style={{ display: "flex", gap: "0", marginBottom: "40px" }}
+        >
+          {(["cart", "details", "payment"] as Step[]).map((s, i) => {
+            const labels: Record<Step, string> = {
+              cart: "Cart",
+              details: "Details",
+              payment: "Payment",
+              confirm: "Confirm",
+            };
+            const stepIndex = ["cart", "details", "payment"].indexOf(step);
+            const thisIndex = i;
+            const done = thisIndex < stepIndex;
+            const active = s === step;
+            return (
+              <div
+                key={s}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  flex: i < 2 ? "1" : "auto",
+                }}
+              >
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                >
+                  <div
+                    style={{
+                      width: "28px",
+                      height: "28px",
+                      borderRadius: "50%",
+                      background: active
+                        ? "#E8541A"
+                        : done
+                          ? "#E8541A"
+                          : "#3D3028",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "12px",
+                      fontWeight: 700,
+                      color: "white",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {done ? "✓" : i + 1}
+                  </div>
+                  <span
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: active ? 600 : 400,
+                      color: active ? "#F5EDD8" : "#8A7566",
+                    }}
+                  >
+                    {labels[s]}
+                  </span>
+                </div>
+                {i < 2 && (
+                  <div
+                    style={{
+                      flex: 1,
+                      height: "1px",
+                      background: done ? "#E8541A" : "#3D3028",
+                      margin: "0 12px",
+                    }}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 320px",
+            gap: "24px",
+          }}
+          className="order-grid mobile-grid-1"
+        >
+          {/* Main content */}
+          <div>
+            {step === "cart" && (
+              <div>
+                {items.length === 0 ? (
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "60px",
+                      color: "#8A7566",
+                    }}
+                  >
+                    <ShoppingBag
+                      size={48}
+                      style={{
+                        margin: "0 auto 16px",
+                        opacity: 0.3,
+                        display: "block",
+                      }}
+                    />
+                    <p
+                      className="font-display"
+                      style={{ fontSize: "22px", marginBottom: "8px" }}
+                    >
+                      Your cart is empty
+                    </p>
+                    <Link href="/menu" style={{ textDecoration: "none" }}>
+                      <button
+                        className="btn-ember"
+                        style={{
+                          marginTop: "16px",
+                          padding: "12px 24px",
+                          borderRadius: "8px",
+                          fontSize: "14px",
+                        }}
+                      >
+                        Browse Menu
+                      </button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div>
+                    {/* Order type */}
+                    <div
+                      className="card"
+                      style={{ padding: "20px", marginBottom: "20px" }}
+                    >
+                      <p
+                        style={{
+                          fontSize: "13px",
+                          fontWeight: 600,
+                          color: "#F5EDD8",
+                          marginBottom: "12px",
+                          letterSpacing: "0.06em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Order Type
+                      </p>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "10px",
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        {(
+                          [
+                            {
+                              val: "delivery",
+                              label: "Delivery",
+                              icon: <Truck size={16} />,
+                            },
+                            {
+                              val: "pickup",
+                              label: "Pickup",
+                              icon: <MapPin size={16} />,
+                            },
+                            {
+                              val: "dine-in",
+                              label: "Dine-In",
+                              icon: <ShoppingBag size={16} />,
+                            },
+                          ] as {
+                            val: OrderType;
+                            label: string;
+                            icon: React.ReactNode;
+                          }[]
+                        ).map(({ val, label, icon }) => (
+                          <button
+                            key={val}
+                            onClick={() => setOrderType(val)}
+                            style={{
+                              padding: "10px 20px",
+                              borderRadius: "8px",
+                              cursor: "pointer",
+                              fontSize: "14px",
+                              fontWeight: 600,
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              transition: "all 0.2s",
+                              background:
+                                orderType === val ? "#E8541A" : "transparent",
+                              border:
+                                orderType === val
+                                  ? "none"
+                                  : "1px solid #3D3028",
+                              color: orderType === val ? "white" : "#8A7566",
+                            }}
+                          >
+                            {icon} {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Items */}
+                    <div
+                      className="card"
+                      style={{ padding: "20px", marginBottom: "20px" }}
+                    >
+                      <p
+                        style={{
+                          fontSize: "13px",
+                          fontWeight: 600,
+                          color: "#F5EDD8",
+                          marginBottom: "16px",
+                          letterSpacing: "0.06em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Items ({items.length})
+                      </p>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "16px",
+                        }}
+                      >
+                        {items.map((item) => (
+                          <div
+                            key={item.id}
+                            style={{
+                              display: "flex",
+                              gap: "14px",
+                              alignItems: "center",
+                            }}
+                          >
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              style={{
+                                width: "64px",
+                                height: "64px",
+                                borderRadius: "8px",
+                                objectFit: "cover",
+                                flexShrink: 0,
+                              }}
+                            />
+                            <div style={{ flex: 1 }}>
+                              <p
+                                style={{
+                                  fontWeight: 600,
+                                  fontSize: "14px",
+                                  color: "#F5EDD8",
+                                  marginBottom: "4px",
+                                }}
+                              >
+                                {item.name}
+                              </p>
+                              <p
+                                style={{
+                                  fontSize: "13px",
+                                  color: "#E8541A",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {formatPrice(item.price)}
+                              </p>
+                            </div>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "10px",
+                              }}
+                            >
+                              <button
+                                onClick={() =>
+                                  updateQuantity(item.id, item.quantity - 1)
+                                }
+                                style={{
+                                  width: "28px",
+                                  height: "28px",
+                                  borderRadius: "6px",
+                                  background: "#3D3028",
+                                  border: "none",
+                                  color: "#F5EDD8",
+                                  cursor: "pointer",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <Minus size={12} />
+                              </button>
+                              <span
+                                style={{
+                                  fontSize: "14px",
+                                  fontWeight: 700,
+                                  color: "#F5EDD8",
+                                  minWidth: "20px",
+                                  textAlign: "center",
+                                }}
+                              >
+                                {item.quantity}
+                              </span>
+                              <button
+                                onClick={() =>
+                                  updateQuantity(item.id, item.quantity + 1)
+                                }
+                                style={{
+                                  width: "28px",
+                                  height: "28px",
+                                  borderRadius: "6px",
+                                  background: "#E8541A",
+                                  border: "none",
+                                  color: "white",
+                                  cursor: "pointer",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <Plus size={12} />
+                              </button>
+                              <span
+                                style={{
+                                  fontSize: "14px",
+                                  fontWeight: 700,
+                                  color: "#F5EDD8",
+                                  minWidth: "60px",
+                                  textAlign: "right",
+                                }}
+                              >
+                                {formatPrice(item.price * item.quantity)}
+                              </span>
+                              <button
+                                onClick={() => removeItem(item.id)}
+                                style={{
+                                  background: "transparent",
+                                  border: "none",
+                                  color: "#8A7566",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "12px",
+                        justifyContent: "space-between",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <button
+                        onClick={handleWhatsApp}
+                        style={{
+                          padding: "12px 24px",
+                          borderRadius: "10px",
+                          fontSize: "14px",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          background: "#25D366",
+                          color: "white",
+                          border: "none",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <MessageCircle size={16} /> Order on WhatsApp
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (!isAuthenticated) {
+                            toast.error("Please sign in before checkout");
+                            router.push("/auth?next=/order");
+                            return;
+                          }
+                          if (user) {
+                            setCustomer((prev) => ({
+                              ...prev,
+                              name: prev.name || user.name,
+                              email: prev.email || user.email,
+                              phone: prev.phone || user.phone || "",
+                            }));
+                          }
+                          setStep("details");
+                        }}
+                        className="btn-ember"
+                        style={{
+                          padding: "12px 32px",
+                          borderRadius: "10px",
+                          fontSize: "14px",
+                        }}
+                      >
+                        Continue →
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {step === "details" && (
+              <div className="card" style={{ padding: "28px" }}>
+                <p
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "#F5EDD8",
+                    marginBottom: "20px",
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Your Details
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "16px",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: "16px",
+                    }}
+                  >
+                    <div>
+                      <label
+                        style={{
+                          fontSize: "12px",
+                          color: "#8A7566",
+                          display: "block",
+                          marginBottom: "6px",
+                          letterSpacing: "0.04em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Full Name *
+                      </label>
+                      <input
+                        className="input-field"
+                        placeholder="Your name"
+                        value={customer.name}
+                        onChange={(e) =>
+                          setCustomer({ ...customer, name: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label
+                        style={{
+                          fontSize: "12px",
+                          color: "#8A7566",
+                          display: "block",
+                          marginBottom: "6px",
+                          letterSpacing: "0.04em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Phone *
+                      </label>
+                      <input
+                        className="input-field"
+                        placeholder="+234..."
+                        type="tel"
+                        value={customer.phone}
+                        onChange={(e) =>
+                          setCustomer({ ...customer, phone: e.target.value })
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label
+                      style={{
+                        fontSize: "12px",
+                        color: "#8A7566",
+                        display: "block",
+                        marginBottom: "6px",
+                        letterSpacing: "0.04em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Email
+                    </label>
+                    <input
+                      className="input-field"
+                      placeholder="you@email.com"
+                      type="email"
+                      value={customer.email}
+                      onChange={(e) =>
+                        setCustomer({ ...customer, email: e.target.value })
+                      }
+                    />
+                  </div>
+                  {orderType === "delivery" && (
+                    <div>
+                      <label
+                        style={{
+                          fontSize: "12px",
+                          color: "#8A7566",
+                          display: "block",
+                          marginBottom: "6px",
+                          letterSpacing: "0.04em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Delivery Address *
+                      </label>
+                      <textarea
+                        className="input-field"
+                        placeholder="Full address including area"
+                        rows={3}
+                        value={customer.address}
+                        onChange={(e) =>
+                          setCustomer({ ...customer, address: e.target.value })
+                        }
+                        style={{ resize: "vertical" }}
+                      />
+                    </div>
+                  )}
+                </div>
+                <div
+                  style={{ display: "flex", gap: "12px", marginTop: "24px" }}
+                >
+                  <button
+                    onClick={() => setStep("cart")}
+                    className="btn-ghost"
+                    style={{
+                      padding: "12px 24px",
+                      borderRadius: "10px",
+                      fontSize: "14px",
+                    }}
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (!customer.name || !customer.phone) {
+                        toast.error("Please fill in required fields");
+                        return;
+                      }
+                      if (orderType === "delivery" && !customer.address) {
+                        toast.error("Please add your delivery address");
+                        return;
+                      }
+                      setStep("payment");
+                    }}
+                    className="btn-ember"
+                    style={{
+                      padding: "12px 32px",
+                      borderRadius: "10px",
+                      fontSize: "14px",
+                    }}
+                  >
+                    Continue →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {step === "payment" && (
+              <div className="card" style={{ padding: "28px" }}>
+                <p
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "#F5EDD8",
+                    marginBottom: "20px",
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Payment Method
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "12px",
+                    marginBottom: "24px",
+                  }}
+                >
+                  {(
+                    [
+                      {
+                        val: "card",
+                        label: "Debit / Credit Card",
+                        sub: "Visa, Mastercard, Verve",
+                        icon: <CreditCard size={20} />,
+                      },
+                      {
+                        val: "transfer",
+                        label: "Bank Transfer",
+                        sub: "GTBank, Access, UBA",
+                        icon: <Banknote size={20} />,
+                      },
+                      {
+                        val: "cash",
+                        label: "Pay on Delivery",
+                        sub: "Cash on arrival",
+                        icon: <Banknote size={20} />,
+                      },
+                    ] as {
+                      val: PaymentMethod;
+                      label: string;
+                      sub: string;
+                      icon: React.ReactNode;
+                    }[]
+                  ).map(({ val, label, sub, icon }) => (
+                    <button
+                      key={val}
+                      onClick={() => setPaymentMethod(val)}
+                      style={{
+                        padding: "16px 20px",
+                        borderRadius: "10px",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        border:
+                          paymentMethod === val
+                            ? "1px solid #E8541A"
+                            : "1px solid #3D3028",
+                        background:
+                          paymentMethod === val
+                            ? "rgba(232,84,26,0.08)"
+                            : "transparent",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "16px",
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: paymentMethod === val ? "#E8541A" : "#8A7566",
+                        }}
+                      >
+                        {icon}
+                      </span>
+                      <div>
+                        <p
+                          style={{
+                            fontWeight: 600,
+                            fontSize: "14px",
+                            color: "#F5EDD8",
+                            marginBottom: "2px",
+                          }}
+                        >
+                          {label}
+                        </p>
+                        <p style={{ fontSize: "12px", color: "#8A7566" }}>
+                          {sub}
+                        </p>
+                      </div>
+                      <div
+                        style={{
+                          marginLeft: "auto",
+                          width: "18px",
+                          height: "18px",
+                          borderRadius: "50%",
+                          border:
+                            paymentMethod === val
+                              ? "none"
+                              : "2px solid #3D3028",
+                          background:
+                            paymentMethod === val ? "#E8541A" : "transparent",
+                          flexShrink: 0,
+                        }}
+                      />
+                    </button>
+                  ))}
+                </div>
+
+                {paymentMethod === "card" && (
+                  <div
+                    style={{
+                      marginBottom: "24px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "16px",
+                    }}
+                  >
+                    <div>
+                      <label
+                        style={{
+                          fontSize: "12px",
+                          color: "#8A7566",
+                          display: "block",
+                          marginBottom: "8px",
+                          textTransform: "uppercase",
+                          fontWeight: 600,
+                        }}
+                      >
+                        Cardholder Name
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="John Doe"
+                        value={paymentDetails.cardholderName}
+                        onChange={(e) =>
+                          setPaymentDetails({
+                            ...paymentDetails,
+                            cardholderName: e.target.value,
+                          })
+                        }
+                        style={{
+                          width: "100%",
+                          padding: "12px",
+                          borderRadius: "8px",
+                          border: "1px solid #3D3028",
+                          background: "#0F0D0A",
+                          color: "#F5EDD8",
+                          fontSize: "14px",
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label
+                        style={{
+                          fontSize: "12px",
+                          color: "#8A7566",
+                          display: "block",
+                          marginBottom: "8px",
+                          textTransform: "uppercase",
+                          fontWeight: 600,
+                        }}
+                      >
+                        Card Number
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="4111 1111 1111 1111"
+                        value={paymentDetails.cardNumber}
+                        onChange={(e) =>
+                          setPaymentDetails({
+                            ...paymentDetails,
+                            cardNumber: e.target.value,
+                          })
+                        }
+                        maxLength={19}
+                        style={{
+                          width: "100%",
+                          padding: "12px",
+                          borderRadius: "8px",
+                          border: "1px solid #3D3028",
+                          background: "#0F0D0A",
+                          color: "#F5EDD8",
+                          fontSize: "14px",
+                          fontFamily: "monospace",
+                        }}
+                      />
+                    </div>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: "16px",
+                      }}
+                    >
+                      <div>
+                        <label
+                          style={{
+                            fontSize: "12px",
+                            color: "#8A7566",
+                            display: "block",
+                            marginBottom: "8px",
+                            textTransform: "uppercase",
+                            fontWeight: 600,
+                          }}
+                        >
+                          Expiry (MM/YY)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="12/28"
+                          value={paymentDetails.expiry}
+                          onChange={(e) =>
+                            setPaymentDetails({
+                              ...paymentDetails,
+                              expiry: e.target.value,
+                            })
+                          }
+                          maxLength={5}
+                          style={{
+                            width: "100%",
+                            padding: "12px",
+                            borderRadius: "8px",
+                            border: "1px solid #3D3028",
+                            background: "#0F0D0A",
+                            color: "#F5EDD8",
+                            fontSize: "14px",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            fontSize: "12px",
+                            color: "#8A7566",
+                            display: "block",
+                            marginBottom: "8px",
+                            textTransform: "uppercase",
+                            fontWeight: 600,
+                          }}
+                        >
+                          CVV
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="123"
+                          value={paymentDetails.cvv}
+                          onChange={(e) =>
+                            setPaymentDetails({
+                              ...paymentDetails,
+                              cvv: e.target.value,
+                            })
+                          }
+                          maxLength={3}
+                          style={{
+                            width: "100%",
+                            padding: "12px",
+                            borderRadius: "8px",
+                            border: "1px solid #3D3028",
+                            background: "#0F0D0A",
+                            color: "#F5EDD8",
+                            fontSize: "14px",
+                            fontFamily: "monospace",
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {paymentMethod === "transfer" && (
+                  <div
+                    style={{
+                      marginBottom: "24px",
+                      padding: "20px",
+                      background: "rgba(232,84,26,0.08)",
+                      borderRadius: "10px",
+                      border: "1px solid #3D3028",
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontSize: "12px",
+                        color: "#D4A843",
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        marginBottom: "16px",
+                      }}
+                    >
+                      Bank Details
+                    </p>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "12px",
+                      }}
+                    >
+                      <div>
+                        <p
+                          style={{
+                            fontSize: "11px",
+                            color: "#8A7566",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          Bank Name
+                        </p>
+                        <p
+                          style={{
+                            fontSize: "14px",
+                            fontWeight: 600,
+                            color: "#F5EDD8",
+                          }}
+                        >
+                          Guaranty Trust Bank (GTBank)
+                        </p>
+                      </div>
+                      <div>
+                        <p
+                          style={{
+                            fontSize: "11px",
+                            color: "#8A7566",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          Account Number
+                        </p>
+                        <p
+                          style={{
+                            fontSize: "14px",
+                            fontWeight: 600,
+                            color: "#F5EDD8",
+                            fontFamily: "monospace",
+                          }}
+                        >
+                          0123456789
+                        </p>
+                      </div>
+                      <div>
+                        <p
+                          style={{
+                            fontSize: "11px",
+                            color: "#8A7566",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          Account Name
+                        </p>
+                        <p
+                          style={{
+                            fontSize: "14px",
+                            fontWeight: 600,
+                            color: "#F5EDD8",
+                          }}
+                        >
+                          Ember & Ash Restaurants
+                        </p>
+                      </div>
+                      <div>
+                        <p
+                          style={{
+                            fontSize: "11px",
+                            color: "#8A7566",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          Amount
+                        </p>
+                        <p
+                          style={{
+                            fontSize: "14px",
+                            fontWeight: 600,
+                            color: "#E8541A",
+                          }}
+                        >
+                          {formatPrice(total)}
+                        </p>
+                      </div>
+                    </div>
+                    <p
+                      style={{
+                        fontSize: "11px",
+                        color: "#8A7566",
+                        marginTop: "16px",
+                        lineHeight: "1.5",
+                      }}
+                    >
+                      ℹ️ After completing your transfer, you'll need to confirm
+                      your order. Keep your transaction reference handy.
+                    </p>
+                  </div>
+                )}
+
+                {isRestaurantClosed && (
+                  <div
+                    style={{
+                      marginBottom: "20px",
+                      padding: "16px 18px",
+                      borderRadius: "12px",
+                      background: "rgba(212,168,67,0.08)",
+                      border: "1px solid rgba(212,168,67,0.25)",
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        color: "#D4A843",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      We&apos;re closed for the day
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "12px",
+                        color: "#8A7566",
+                        lineHeight: "1.5",
+                      }}
+                    >
+                      Please come back during opening hours and we&apos;ll take
+                      care of your order.
+                    </p>
+                  </div>
+                )}
+
+                <div style={{ display: "flex", gap: "12px" }}>
+                  <button
+                    onClick={() => setStep("details")}
+                    className="btn-ghost"
+                    style={{
+                      padding: "12px 24px",
+                      borderRadius: "10px",
+                      fontSize: "14px",
+                    }}
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    onClick={handlePlaceOrder}
+                    disabled={isRestaurantClosed}
+                    className="btn-ember"
+                    style={{
+                      padding: "12px 32px",
+                      borderRadius: "10px",
+                      fontSize: "14px",
+                      flex: 1,
+                      opacity: isRestaurantClosed ? 0.6 : 1,
+                      cursor: isRestaurantClosed ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    Place Order
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Summary sidebar */}
+          <div>
+            <div
+              className="card"
+              style={{ padding: "20px", position: "sticky", top: "80px" }}
+            >
+              <p
+                style={{
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  color: "#F5EDD8",
+                  marginBottom: "16px",
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Order Summary
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "8px",
+                  marginBottom: "16px",
+                }}
+              >
+                {items.map((item) => (
+                  <div
+                    key={item.id}
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <span style={{ fontSize: "13px", color: "#8A7566" }}>
+                      {item.name} ×{item.quantity}
+                    </span>
+                    <span style={{ fontSize: "13px", color: "#F5EDD8" }}>
+                      {formatPrice(item.price * item.quantity)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="divider" style={{ marginBottom: "12px" }} />
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: "6px",
+                }}
+              >
+                <span style={{ fontSize: "13px", color: "#8A7566" }}>
+                  Subtotal
+                </span>
+                <span style={{ fontSize: "13px", color: "#F5EDD8" }}>
+                  {formatPrice(sub)}
+                </span>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: "14px",
+                }}
+              >
+                <span style={{ fontSize: "13px", color: "#8A7566" }}>
+                  Delivery {orderType !== "delivery" && "(N/A)"}
+                </span>
+                <span
+                  style={{
+                    fontSize: "13px",
+                    color: deliveryFee === 0 ? "#D4A843" : "#F5EDD8",
+                  }}
+                >
+                  {orderType !== "delivery"
+                    ? "—"
+                    : deliveryFee === 0
+                      ? "Free"
+                      : formatPrice(deliveryFee)}
+                </span>
+              </div>
+              <div className="divider" style={{ marginBottom: "12px" }} />
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontWeight: 700, color: "#F5EDD8" }}>Total</span>
+                <span
+                  style={{
+                    fontWeight: 700,
+                    fontSize: "18px",
+                    color: "#E8541A",
+                  }}
+                >
+                  {formatPrice(total)}
+                </span>
+              </div>
+
+              <div
+                style={{
+                  marginTop: "16px",
+                  padding: "12px",
+                  background: "#221C16",
+                  borderRadius: "8px",
+                  border: "1px solid #3D3028",
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: "#8A7566",
+                    lineHeight: "1.6",
+                  }}
+                >
+                  🕒 Estimated time:{" "}
+                  <span style={{ color: "#F5EDD8" }}>30–45 min</span> for
+                  delivery, <span style={{ color: "#F5EDD8" }}>15–20 min</span>{" "}
+                  for pickup
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .order-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+    </div>
+  );
+}

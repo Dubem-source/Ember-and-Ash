@@ -1,0 +1,631 @@
+"use client";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  ArrowRight,
+  MessageCircle,
+  Calendar,
+  MapPin,
+  Clock,
+  Star,
+} from "lucide-react";
+import { MENU_ITEMS, RESTAURANT_INFO } from "@/lib/data";
+import { useCartStore } from "@/store/cartStore";
+import { useAuthStore } from "@/store/authStore";
+import { hasAccounts } from "@/lib/demoAuth";
+import { formatPrice } from "@/lib/utils";
+import toast from "react-hot-toast";
+
+const FEATURED = MENU_ITEMS.filter((i) => i.featured).slice(0, 4);
+
+export default function HomePage() {
+  const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
+  const { addItem, openCart } = useCartStore();
+  const handleAdd = (item: (typeof MENU_ITEMS)[0]) => {
+    addItem(item);
+    toast.success(`${item.name} added!`);
+    openCart();
+  };
+
+  const handleWhatsAppCTA = () => {
+    if (!isAuthenticated) {
+      const hasAccount = hasAccounts();
+      toast.error(
+        hasAccount
+          ? "Please log in with your email and password first"
+          : "Please sign up first before using WhatsApp",
+      );
+      router.push("/auth?next=/");
+      return;
+    }
+    const message = encodeURIComponent(
+      "Hello Ember & Ash! I'd like to place an order 🔥",
+    );
+    window.open(
+      `https://wa.me/${RESTAURANT_INFO.whatsapp.replace(/\+/g, "")}?text=${message}`,
+      "_blank",
+    );
+  };
+  return (
+    <div className="page-shell" style={{ paddingTop: "64px" }}>
+      <section
+        className="section-shell"
+        style={{
+          minHeight: "92vh",
+          position: "relative",
+          display: "flex",
+          alignItems: "center",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1800&q=80')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            filter: "brightness(0.3)",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background:
+              "linear-gradient(135deg, rgba(232,84,26,0.15) 0%, rgba(26,22,18,0.8) 60%)",
+          }}
+        />
+        <div
+          className="page-enter"
+          style={{
+            position: "relative",
+            zIndex: 10,
+            maxWidth: "1200px",
+            margin: "0 auto",
+            padding: "0 24px",
+            width: "100%",
+          }}
+        >
+          <p className="section-label" style={{ marginBottom: "24px" }}>
+            🔥 Now accepting orders
+          </p>
+          <h1
+            className="font-display"
+            style={{
+              fontSize: "clamp(48px, 8vw, 96px)",
+              fontWeight: 900,
+              lineHeight: 1,
+              color: "#F5EDD8",
+              marginBottom: "8px",
+            }}
+          >
+            Fire-crafted
+          </h1>
+          <h1
+            className="font-display"
+            style={{
+              fontSize: "clamp(48px, 8vw, 96px)",
+              fontWeight: 900,
+              lineHeight: 1,
+              color: "#E8541A",
+              marginBottom: "32px",
+              fontStyle: "italic",
+            }}
+          >
+            Flavours.
+          </h1>
+          <p
+            style={{
+              fontSize: "18px",
+              color: "#8A7566",
+              maxWidth: "480px",
+              lineHeight: "1.7",
+              marginBottom: "48px",
+            }}
+          >
+            Rooted in West African tradition. Perfected over open flame.
+            Delivered to your door or served at your table.
+          </p>
+          <div
+            className="mobile-stack mobile-small-gap"
+            style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}
+          >
+            <Link href="/menu" style={{ textDecoration: "none" }}>
+              <button
+                className="btn-ember"
+                style={{
+                  padding: "16px 32px",
+                  borderRadius: "10px",
+                  fontSize: "16px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                }}
+              >
+                Explore Menu <ArrowRight size={18} />
+              </button>
+            </Link>
+            <Link href="/reservations" style={{ textDecoration: "none" }}>
+              <button
+                className="btn-ghost"
+                style={{
+                  padding: "16px 32px",
+                  borderRadius: "10px",
+                  fontSize: "16px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                }}
+              >
+                <Calendar size={18} /> Book a Table
+              </button>
+            </Link>
+          </div>
+          <div
+            className="mobile-stack mobile-small-gap"
+            style={{
+              display: "flex",
+              gap: "40px",
+              marginTop: "64px",
+              flexWrap: "wrap",
+            }}
+          >
+            {[
+              { label: "Menu items", value: "50+" },
+              { label: "Happy guests", value: "12k+" },
+              { label: "Years of flame", value: "8" },
+              { label: "Rating", value: "4.9★" },
+            ].map((stat) => (
+              <div key={stat.label}>
+                <p
+                  className="font-display"
+                  style={{
+                    fontSize: "32px",
+                    fontWeight: 900,
+                    color: "#F5EDD8",
+                  }}
+                >
+                  {stat.value}
+                </p>
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: "#8A7566",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {stat.label}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section
+        style={{ maxWidth: "1200px", margin: "0 auto", padding: "80px 24px" }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-end",
+            marginBottom: "48px",
+            flexWrap: "wrap",
+            gap: "16px",
+          }}
+        >
+          <div>
+            <p className="section-label" style={{ marginBottom: "12px" }}>
+              Our Signatures
+            </p>
+            <h2
+              className="font-display"
+              style={{ fontSize: "40px", fontWeight: 700, color: "#F5EDD8" }}
+            >
+              {"Chef's Favourites"}
+            </h2>
+          </div>
+          <Link href="/menu" style={{ textDecoration: "none" }}>
+            <span
+              style={{
+                color: "#E8541A",
+                fontSize: "14px",
+                fontWeight: 600,
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              Full Menu <ArrowRight size={16} />
+            </span>
+          </Link>
+        </div>
+        <div
+          className="mobile-grid-1"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+            gap: "20px",
+          }}
+        >
+          {FEATURED.map((item) => (
+            <div key={item.id} className="card" style={{ overflow: "hidden" }}>
+              <div style={{ position: "relative", height: "200px" }}>
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: "80px",
+                    background: "linear-gradient(transparent, #221C16)",
+                  }}
+                />
+                <span
+                  className="badge"
+                  style={{
+                    position: "absolute",
+                    top: "12px",
+                    left: "12px",
+                    background: "#E8541A",
+                    color: "white",
+                  }}
+                >
+                  Featured
+                </span>
+              </div>
+              <div style={{ padding: "16px" }}>
+                <h3
+                  className="font-display"
+                  style={{
+                    fontSize: "20px",
+                    fontWeight: 700,
+                    color: "#F5EDD8",
+                    marginBottom: "6px",
+                  }}
+                >
+                  {item.name}
+                </h3>
+                <p
+                  style={{
+                    fontSize: "13px",
+                    color: "#8A7566",
+                    lineHeight: "1.5",
+                    marginBottom: "16px",
+                  }}
+                >
+                  {item.description}
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <span
+                    className="font-display"
+                    style={{
+                      fontSize: "22px",
+                      fontWeight: 700,
+                      color: "#E8541A",
+                    }}
+                  >
+                    {formatPrice(item.price)}
+                  </span>
+                  <button
+                    onClick={() => handleAdd(item)}
+                    className="btn-ember"
+                    style={{
+                      padding: "8px 18px",
+                      borderRadius: "8px",
+                      fontSize: "13px",
+                    }}
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section
+        style={{
+          background: "#221C16",
+          borderTop: "1px solid #3D3028",
+          borderBottom: "1px solid #3D3028",
+          padding: "80px 24px",
+        }}
+      >
+        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+          <p
+            className="section-label"
+            style={{ marginBottom: "12px", textAlign: "center" }}
+          >
+            Simple as fire
+          </p>
+          <h2
+            className="font-display"
+            style={{
+              fontSize: "36px",
+              fontWeight: 700,
+              color: "#F5EDD8",
+              textAlign: "center",
+              marginBottom: "48px",
+            }}
+          >
+            How to Order
+          </h2>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              gap: "32px",
+            }}
+          >
+            {[
+              {
+                step: "01",
+                title: "Browse Menu",
+                desc: "Explore fire-crafted dishes across starters, mains, grills, soups and more.",
+                icon: "🍽️",
+              },
+              {
+                step: "02",
+                title: "Build Your Order",
+                desc: "Add items to cart. Customize portions and leave special notes.",
+                icon: "🛒",
+              },
+              {
+                step: "03",
+                title: "Choose How",
+                desc: "Delivery, pickup, or dine-in. Pay by card, transfer or cash.",
+                icon: "🛵",
+              },
+              {
+                step: "04",
+                title: "Track & Enjoy",
+                desc: "Follow your order in real-time and enjoy every ember-kissed bite.",
+                icon: "🔥",
+              },
+            ].map((s) => (
+              <div key={s.step} style={{ textAlign: "center" }}>
+                <div
+                  style={{
+                    width: "72px",
+                    height: "72px",
+                    borderRadius: "16px",
+                    background: "rgba(232,84,26,0.1)",
+                    border: "1px solid rgba(232,84,26,0.2)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "32px",
+                    margin: "0 auto 20px",
+                  }}
+                >
+                  {s.icon}
+                </div>
+                <p
+                  style={{
+                    fontSize: "11px",
+                    color: "#E8541A",
+                    fontWeight: 700,
+                    letterSpacing: "0.15em",
+                    marginBottom: "8px",
+                  }}
+                >
+                  {s.step}
+                </p>
+                <h3
+                  className="font-display"
+                  style={{
+                    fontSize: "22px",
+                    fontWeight: 700,
+                    color: "#F5EDD8",
+                    marginBottom: "8px",
+                  }}
+                >
+                  {s.title}
+                </h3>
+                <p
+                  style={{
+                    fontSize: "14px",
+                    color: "#8A7566",
+                    lineHeight: "1.6",
+                  }}
+                >
+                  {s.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section
+        style={{ padding: "80px 24px", maxWidth: "1200px", margin: "0 auto" }}
+      >
+        <div
+          style={{
+            background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
+            borderRadius: "20px",
+            padding: "60px 48px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: "32px",
+          }}
+        >
+          <div>
+            <h2
+              className="font-display"
+              style={{
+                fontSize: "36px",
+                fontWeight: 700,
+                color: "white",
+                marginBottom: "12px",
+              }}
+            >
+              Order on WhatsApp
+            </h2>
+            <p
+              style={{
+                fontSize: "16px",
+                color: "rgba(255,255,255,0.8)",
+                maxWidth: "480px",
+                lineHeight: "1.6",
+              }}
+            >
+              Prefer to chat? Message us directly. We&apos;ll confirm your order
+              and keep you updated every step of the way.
+            </p>
+          </div>
+          <button
+            onClick={handleWhatsAppCTA}
+            style={{
+              background: "white",
+              color: "#128C7E",
+              border: "none",
+              padding: "18px 36px",
+              borderRadius: "12px",
+              fontSize: "16px",
+              fontWeight: 700,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+            }}
+          >
+            <MessageCircle size={22} /> Chat Now
+          </button>
+        </div>
+      </section>
+
+      <section
+        style={{
+          background: "#221C16",
+          borderTop: "1px solid #3D3028",
+          padding: "40px 24px",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "1200px",
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gap: "32px",
+          }}
+        >
+          <div
+            style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}
+          >
+            <MapPin
+              size={22}
+              color="#E8541A"
+              style={{ flexShrink: 0, marginTop: "2px" }}
+            />
+            <div>
+              <p
+                style={{
+                  fontWeight: 600,
+                  color: "#F5EDD8",
+                  marginBottom: "4px",
+                }}
+              >
+                Location
+              </p>
+              <p style={{ fontSize: "13px", color: "#8A7566" }}>
+                {RESTAURANT_INFO.address}
+              </p>
+            </div>
+          </div>
+          <div
+            style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}
+          >
+            <Clock
+              size={22}
+              color="#E8541A"
+              style={{ flexShrink: 0, marginTop: "2px" }}
+            />
+            <div>
+              <p
+                style={{
+                  fontWeight: 600,
+                  color: "#F5EDD8",
+                  marginBottom: "4px",
+                }}
+              >
+                Hours
+              </p>
+              <p style={{ fontSize: "13px", color: "#8A7566" }}>
+                Mon–Fri: {RESTAURANT_INFO.hours.weekday}
+              </p>
+              <p style={{ fontSize: "13px", color: "#8A7566" }}>
+                Sat–Sun: {RESTAURANT_INFO.hours.weekend}
+              </p>
+            </div>
+          </div>
+          <div
+            style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}
+          >
+            <Star
+              size={22}
+              color="#D4A843"
+              style={{ flexShrink: 0, marginTop: "2px" }}
+            />
+            <div>
+              <p
+                style={{
+                  fontWeight: 600,
+                  color: "#F5EDD8",
+                  marginBottom: "4px",
+                }}
+              >
+                Delivery
+              </p>
+              <p style={{ fontSize: "13px", color: "#8A7566" }}>
+                Within {RESTAURANT_INFO.deliveryRadius}
+              </p>
+              <p style={{ fontSize: "13px", color: "#D4A843" }}>
+                Free above {formatPrice(RESTAURANT_INFO.freeDeliveryAbove)}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <footer
+        style={{
+          background: "#1A1612",
+          borderTop: "1px solid #3D3028",
+          padding: "32px 24px",
+          textAlign: "center",
+        }}
+      >
+        <p style={{ fontSize: "13px", color: "#3D3028" }}>
+          © 2024 Ember & Ash Restaurant ·{" "}
+          <a
+            href={`tel:${RESTAURANT_INFO.phone}`}
+            style={{ color: "#8A7566", textDecoration: "none" }}
+          >
+            {RESTAURANT_INFO.phone}
+          </a>
+        </p>
+      </footer>
+    </div>
+  );
+}
