@@ -28,7 +28,8 @@
 }
 html {
   scroll-behavior: smooth;
-  scrollbar-gutter: stable;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -36,6 +37,8 @@ body {
   background-color: var(--ash);
   color: var(--cream);
   -webkit-font-smoothing: antialiased;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .font-display {
@@ -247,13 +250,55 @@ body {
   }
 
   .page-shell {
+    width: 100% !important;
     padding-left: 16px !important;
     padding-right: 16px !important;
   }
 
+  .home-page-shell {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
   .section-shell {
+    width: 100% !important;
     padding-left: 16px !important;
     padding-right: 16px !important;
+  }
+
+  .home-hero-shell {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .home-hero-content {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .home-hero-bg {
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    transform: none !important;
+  }
+
+  .home-section {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .home-feature-section,
+  .home-how-section,
+  .home-cta-section,
+  .home-info-section {
+    padding-top: 48px !important;
+    padding-bottom: 48px !important;
+  }
+
+  .home-feature-grid {
+    gap: 16px !important;
   }
 
   .mobile-stack {
@@ -311,6 +356,28 @@ body {
 }
 
 @media (max-width: 480px) {
+  .home-hero-content {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .home-section {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .home-feature-section,
+  .home-how-section,
+  .home-cta-section,
+  .home-info-section {
+    padding-top: 40px !important;
+    padding-bottom: 40px !important;
+  }
+
+  .home-feature-grid {
+    gap: 14px !important;
+  }
+
   .mobile-compact-gap {
     gap: 10px !important;
   }

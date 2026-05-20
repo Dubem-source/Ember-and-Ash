@@ -48,26 +48,32 @@ export default function HomePage() {
     );
   };
   return (
-    <div className="page-shell" style={{ paddingTop: "64px" }}>
+    <div className="page-shell home-page-shell" style={{ paddingTop: "64px" }}>
       <section
-        className="section-shell"
+        className="section-shell home-hero-shell"
         style={{
-          minHeight: "92vh",
+          minHeight: "calc(100dvh - 64px)",
           position: "relative",
           display: "flex",
           alignItems: "center",
           overflow: "hidden",
+          width: "100%",
         }}
       >
         <div
+          className="home-hero-bg"
           style={{
             position: "absolute",
-            inset: 0,
+            top: "-1px",
+            left: "-1px",
+            right: "-1px",
+            bottom: "-1px",
             backgroundImage:
               "url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1800&q=80')",
             backgroundSize: "cover",
             backgroundPosition: "center",
             filter: "brightness(0.3)",
+            transform: "scale(1.02)",
           }}
         />
         <div
@@ -79,7 +85,7 @@ export default function HomePage() {
           }}
         />
         <div
-          className="page-enter"
+          className="page-enter home-hero-content"
           style={{
             position: "relative",
             zIndex: 10,
@@ -93,31 +99,32 @@ export default function HomePage() {
             🔥 Now accepting orders
           </p>
           <h1
-            className="font-display"
+            className="font-display mobile-title"
             style={{
-              fontSize: "clamp(48px, 8vw, 96px)",
+              fontSize: "clamp(44px, 10vw, 96px)",
               fontWeight: 900,
-              lineHeight: 1,
+              lineHeight: 1.1,
               color: "#F5EDD8",
-              marginBottom: "8px",
+              marginBottom: "4px",
             }}
           >
             Fire-crafted
           </h1>
           <h1
-            className="font-display"
+            className="font-display mobile-title"
             style={{
-              fontSize: "clamp(48px, 8vw, 96px)",
+              fontSize: "clamp(44px, 10vw, 96px)",
               fontWeight: 900,
-              lineHeight: 1,
+              lineHeight: 1.1,
               color: "#E8541A",
-              marginBottom: "32px",
+              marginBottom: "28px",
               fontStyle: "italic",
             }}
           >
             Flavours.
           </h1>
           <p
+            className="mobile-subtitle"
             style={{
               fontSize: "18px",
               color: "#8A7566",
@@ -207,6 +214,7 @@ export default function HomePage() {
       </section>
 
       <section
+        className="home-section home-feature-section"
         style={{ maxWidth: "1200px", margin: "0 auto", padding: "80px 24px" }}
       >
         <div
@@ -246,7 +254,7 @@ export default function HomePage() {
           </Link>
         </div>
         <div
-          className="mobile-grid-1"
+          className="mobile-grid-1 home-feature-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
@@ -342,6 +350,7 @@ export default function HomePage() {
       </section>
 
       <section
+        className="home-section home-how-section"
         style={{
           background: "#221C16",
           borderTop: "1px solid #3D3028",
@@ -456,6 +465,7 @@ export default function HomePage() {
       </section>
 
       <section
+        className="home-section home-cta-section"
         style={{ padding: "80px 24px", maxWidth: "1200px", margin: "0 auto" }}
       >
         <div
@@ -516,6 +526,7 @@ export default function HomePage() {
       </section>
 
       <section
+        className="home-section home-info-section"
         style={{
           background: "#221C16",
           borderTop: "1px solid #3D3028",

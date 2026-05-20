@@ -174,6 +174,7 @@ export default function ReservationsPage() {
             }}
           >
             <div
+              className="mobile-grid-1"
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
@@ -326,7 +327,11 @@ export default function ReservationsPage() {
             height: "340px",
             filter: "brightness(0.25)",
             position: "absolute",
-            inset: 0,
+            top: "-1px",
+            left: "-1px",
+            right: "-1px",
+            bottom: "-1px",
+            transform: "scale(1.02)",
           }}
         />
         <div
@@ -361,7 +366,7 @@ export default function ReservationsPage() {
 
       {/* Main content */}
       <div
-        className="section-shell"
+        className="section-shell reservation-container"
         style={{
           maxWidth: "1100px",
           margin: "0 auto",
@@ -380,6 +385,7 @@ export default function ReservationsPage() {
               borderRadius: "16px",
               padding: "36px",
             }}
+            className="reservation-card"
           >
             <h2
               className="font-display"
@@ -478,7 +484,7 @@ export default function ReservationsPage() {
 
               {/* Date + Time + Guests */}
               <div
-                className="mobile-grid-1"
+                className="date-time-guests-grid"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr 1fr",
@@ -791,12 +797,21 @@ export default function ReservationsPage() {
       </div>
 
       <style>{`
-        @media (max-width: 768px) {
-          div[style*="grid-template-columns: 1fr 340px"] {
+        @media (max-width: 868px) {
+          .reservation-container {
             grid-template-columns: 1fr !important;
+            padding: 32px 16px !important;
           }
-          div[style*="grid-template-columns: 1fr 1fr 1fr"] {
+          .reservation-card {
+            padding: 24px !important;
+          }
+          .date-time-guests-grid {
             grid-template-columns: 1fr 1fr !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .date-time-guests-grid {
+            grid-template-columns: 1fr !important;
           }
         }
       `}</style>

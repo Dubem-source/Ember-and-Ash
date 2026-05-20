@@ -160,26 +160,29 @@ export default function TrackingPage() {
 
   return (
     <div
-      className="page-shell"
+      className="page-shell tracking-page-shell w-full max-w-full overflow-x-hidden"
       style={{ paddingTop: "64px", minHeight: "100vh" }}
     >
       {/* Header */}
       <div
-        className="section-shell"
+        className="section-shell tracking-hero w-full max-w-full"
         style={{
           background: "#221C16",
           borderBottom: "1px solid #3D3028",
           padding: "48px 24px 40px",
         }}
       >
-        <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+        <div
+          className="tracking-hero-inner"
+          style={{ maxWidth: "800px", margin: "0 auto" }}
+        >
           <p className="section-label" style={{ marginBottom: "12px" }}>
             Real-time updates
           </p>
           <h1
-            className="font-display"
+            className="font-display tracking-title"
             style={{
-              fontSize: "clamp(36px, 5vw, 56px)",
+              fontSize: "clamp(32px, 5vw, 56px)",
               fontWeight: 900,
               color: "#F5EDD8",
               marginBottom: "12px",
@@ -206,9 +209,12 @@ export default function TrackingPage() {
             </span>{" "}
             for a live demo.
           </p>
-          <div style={{ display: "flex", gap: "12px", maxWidth: "560px" }}>
+          <div
+            className="search-container tracking-search w-full max-w-full"
+            style={{ display: "flex", gap: "12px", maxWidth: "560px" }}
+          >
             <input
-              className="input-field"
+              className="input-field tracking-search-input w-full max-w-full"
               value={orderId}
               onChange={(e) => setOrderId(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -217,7 +223,7 @@ export default function TrackingPage() {
             />
             <button
               onClick={handleSearch}
-              className="btn-ember"
+              className="btn-ember tracking-search-button"
               style={{
                 padding: "12px 24px",
                 borderRadius: "8px",
@@ -236,7 +242,7 @@ export default function TrackingPage() {
       </div>
 
       <div
-        className="section-shell"
+        className="section-shell tracking-content w-full max-w-full"
         style={{ maxWidth: "800px", margin: "0 auto", padding: "48px 24px" }}
       >
         {!searched ? (
@@ -316,6 +322,7 @@ export default function TrackingPage() {
           <div className="page-enter">
             {/* Order card */}
             <div
+              className="card tracking-order-card"
               style={{
                 background: "#221C16",
                 border: "1px solid #3D3028",
@@ -325,6 +332,7 @@ export default function TrackingPage() {
               }}
             >
               <div
+                className="tracking-order-header"
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
@@ -357,7 +365,7 @@ export default function TrackingPage() {
                     {orderId.toUpperCase()}
                   </p>
                 </div>
-                <div style={{ textAlign: "right" }}>
+                <div className="status-badge-container">
                   <span
                     className="badge"
                     style={{
@@ -410,6 +418,7 @@ export default function TrackingPage() {
 
               {orderData && (
                 <div
+                  className="tracking-meta-row"
                   style={{
                     display: "flex",
                     gap: "24px",
@@ -614,6 +623,7 @@ export default function TrackingPage() {
 
             {/* Contact */}
             <div
+              className="card contact-card"
               style={{
                 background: "#221C16",
                 border: "1px solid #3D3028",
@@ -640,7 +650,10 @@ export default function TrackingPage() {
                   Our team is available during restaurant hours
                 </p>
               </div>
-              <div style={{ display: "flex", gap: "10px" }}>
+              <div
+                className="tracking-contact-actions"
+                style={{ display: "flex", gap: "10px" }}
+              >
                 <a
                   href={`tel:${RESTAURANT_INFO.phone}`}
                   style={{ textDecoration: "none" }}
@@ -682,6 +695,58 @@ export default function TrackingPage() {
           </div>
         )}
       </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .tracking-page-shell { width: 100% !important; padding-left: 0 !important; padding-right: 0 !important; }
+          .tracking-hero,
+          .tracking-content { padding-left: 16px !important; padding-right: 16px !important; }
+          .tracking-hero-inner,
+          .tracking-content { width: 100% !important; max-width: 100% !important; }
+          .tracking-order-card { padding: 20px !important; border-radius: 14px !important; }
+          .tracking-order-header { gap: 10px !important; }
+          .tracking-meta-row { gap: 16px !important; }
+          .tracking-search { max-width: 100% !important; }
+          .tracking-search-input { width: 100% !important; max-width: 100% !important; }
+          .tracking-search-button { width: 100% !important; justify-content: center; }
+          .tracking-contact-actions { width: 100% !important; }
+          .tracking-contact-actions button,
+          .tracking-contact-actions a { width: 100% !important; }
+        }
+
+        @media (max-width: 640px) {
+          .search-container {
+            flex-direction: column !important;
+            align-items: stretch !important;
+          }
+          .search-container button {
+            justify-content: center;
+          }
+          .status-badge-container {
+            width: 100%;
+            text-align: left !important;
+            margin-top: 8px;
+          }
+          .contact-card {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            text-align: center;
+          }
+          .contact-card div:last-child {
+            justify-content: center;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .tracking-hero { padding: 28px 12px 24px !important; }
+          .tracking-content { padding: 24px 12px !important; }
+          .tracking-order-card { padding: 16px !important; }
+          .tracking-order-header { flex-direction: column !important; }
+          .status-badge-container { margin-top: 0 !important; }
+          .tracking-meta-row { flex-direction: column !important; gap: 12px !important; }
+          .tracking-contact-actions { flex-direction: column !important; }
+        }
+      `}</style>
     </div>
   );
 }

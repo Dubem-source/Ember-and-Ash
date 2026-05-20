@@ -1280,7 +1280,10 @@ export default function OrderPage() {
                   </div>
                 )}
 
-                <div className="order-action-row" style={{ display: "flex", gap: "12px" }}>
+                <div
+                  className="order-action-row"
+                  style={{ display: "flex", gap: "12px" }}
+                >
                   <button
                     onClick={() => setStep("details")}
                     className="btn-ghost"

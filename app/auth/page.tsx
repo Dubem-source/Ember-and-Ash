@@ -102,6 +102,7 @@ export default function AuthPage() {
   if (successState) {
     return (
       <div
+        className="page-shell auth-page-shell w-full max-w-full overflow-x-hidden"
         style={{
           paddingTop: "64px",
           minHeight: "100vh",
@@ -184,7 +185,7 @@ export default function AuthPage() {
 
   return (
     <div
-      className="page-shell"
+      className="page-shell auth-page-shell w-full max-w-full overflow-x-hidden"
       style={{
         paddingTop: "64px",
         minHeight: "100vh",
@@ -195,14 +196,14 @@ export default function AuthPage() {
       }}
     >
       <div
-        className="card page-enter"
+        className="card page-enter auth-card w-full max-w-full"
         style={{ width: "100%", maxWidth: "520px", padding: "28px" }}
       >
         <p className="section-label" style={{ marginBottom: "10px" }}>
           Customer Account
         </p>
         <h1
-          className="font-display"
+          className="font-display auth-title"
           style={{
             fontSize: "32px",
             fontWeight: 800,
@@ -211,22 +212,24 @@ export default function AuthPage() {
           }}
         >
           {mode === "signin"
-            ? "Login with Email and Password"
+            ? "Login with Email"
             : "Create Account"}
         </h1>
 
-        <div style={{ display: "flex", gap: "8px", marginBottom: "20px" }}>
+        <div className="auth-toggle-row" style={{ display: "flex", gap: "8px", marginBottom: "24px" }}>
           <button
             onClick={() => setMode("signin")}
             style={{
               flex: 1,
-              padding: "10px 14px",
-              borderRadius: "8px",
+              padding: "12px 14px",
+              borderRadius: "10px",
               border: mode === "signin" ? "none" : "1px solid #3D3028",
               background: mode === "signin" ? "#E8541A" : "transparent",
               color: mode === "signin" ? "white" : "#8A7566",
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: "pointer",
+              fontSize: "14px",
+              transition: "all 0.2s",
             }}
           >
             Sign In
@@ -235,13 +238,15 @@ export default function AuthPage() {
             onClick={() => setMode("signup")}
             style={{
               flex: 1,
-              padding: "10px 14px",
-              borderRadius: "8px",
+              padding: "12px 14px",
+              borderRadius: "10px",
               border: mode === "signup" ? "none" : "1px solid #3D3028",
               background: mode === "signup" ? "#E8541A" : "transparent",
               color: mode === "signup" ? "white" : "#8A7566",
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: "pointer",
+              fontSize: "14px",
+              transition: "all 0.2s",
             }}
           >
             Sign Up
@@ -251,7 +256,8 @@ export default function AuthPage() {
         {mode === "signin" ? (
           <form
             onSubmit={handleSignIn}
-            style={{ display: "flex", flexDirection: "column", gap: "14px" }}
+            className="auth-form"
+            style={{ display: "flex", flexDirection: "column", gap: "16px" }}
           >
             <div>
               <label
@@ -259,7 +265,9 @@ export default function AuthPage() {
                   fontSize: "12px",
                   color: "#8A7566",
                   display: "block",
-                  marginBottom: "6px",
+                  marginBottom: "8px",
+                  textTransform: "uppercase",
+                  fontWeight: 600,
                 }}
               >
                 Email
@@ -280,7 +288,9 @@ export default function AuthPage() {
                   fontSize: "12px",
                   color: "#8A7566",
                   display: "block",
-                  marginBottom: "6px",
+                  marginBottom: "8px",
+                  textTransform: "uppercase",
+                  fontWeight: 600,
                 }}
               >
                 Password
@@ -297,16 +307,18 @@ export default function AuthPage() {
             </div>
             <button
               className="btn-ember"
+              type="submit"
               disabled={loading}
               style={{
                 marginTop: "8px",
-                padding: "12px 18px",
+                padding: "14px 18px",
                 borderRadius: "10px",
+                fontWeight: 700,
               }}
             >
               {loading ? "Logging in..." : "Log In"}
             </button>
-            <p style={{ marginTop: "8px", fontSize: "12px", color: "#8A7566" }}>
+            <p className="auth-switch-copy" style={{ marginTop: "8px", fontSize: "13px", color: "#8A7566", textAlign: "center" }}>
               Don&apos;t have an account?{" "}
               <button
                 type="button"
@@ -317,6 +329,7 @@ export default function AuthPage() {
                   color: "#D4A843",
                   cursor: "pointer",
                   padding: 0,
+                  fontWeight: 600,
                 }}
               >
                 Sign up
@@ -326,7 +339,8 @@ export default function AuthPage() {
         ) : (
           <form
             onSubmit={handleSignUp}
-            style={{ display: "flex", flexDirection: "column", gap: "14px" }}
+            className="auth-form"
+            style={{ display: "flex", flexDirection: "column", gap: "16px" }}
           >
             <div>
               <label
@@ -334,7 +348,9 @@ export default function AuthPage() {
                   fontSize: "12px",
                   color: "#8A7566",
                   display: "block",
-                  marginBottom: "6px",
+                  marginBottom: "8px",
+                  textTransform: "uppercase",
+                  fontWeight: 600,
                 }}
               >
                 Full Name
@@ -354,7 +370,9 @@ export default function AuthPage() {
                   fontSize: "12px",
                   color: "#8A7566",
                   display: "block",
-                  marginBottom: "6px",
+                  marginBottom: "8px",
+                  textTransform: "uppercase",
+                  fontWeight: 600,
                 }}
               >
                 Email
@@ -375,7 +393,9 @@ export default function AuthPage() {
                   fontSize: "12px",
                   color: "#8A7566",
                   display: "block",
-                  marginBottom: "6px",
+                  marginBottom: "8px",
+                  textTransform: "uppercase",
+                  fontWeight: 600,
                 }}
               >
                 Phone
@@ -391,6 +411,7 @@ export default function AuthPage() {
               />
             </div>
             <div
+              className="password-grid"
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
@@ -403,7 +424,9 @@ export default function AuthPage() {
                     fontSize: "12px",
                     color: "#8A7566",
                     display: "block",
-                    marginBottom: "6px",
+                    marginBottom: "8px",
+                    textTransform: "uppercase",
+                    fontWeight: 600,
                   }}
                 >
                   Password
@@ -427,7 +450,9 @@ export default function AuthPage() {
                     fontSize: "12px",
                     color: "#8A7566",
                     display: "block",
-                    marginBottom: "6px",
+                    marginBottom: "8px",
+                    textTransform: "uppercase",
+                    fontWeight: 600,
                   }}
                 >
                   Confirm
@@ -448,16 +473,18 @@ export default function AuthPage() {
             </div>
             <button
               className="btn-ember"
+              type="submit"
               disabled={loading}
               style={{
                 marginTop: "8px",
-                padding: "12px 18px",
+                padding: "14px 18px",
                 borderRadius: "10px",
+                fontWeight: 700,
               }}
             >
               {loading ? "Creating account..." : "Create Account"}
             </button>
-            <p style={{ marginTop: "8px", fontSize: "12px", color: "#8A7566" }}>
+            <p className="auth-switch-copy" style={{ marginTop: "8px", fontSize: "13px", color: "#8A7566", textAlign: "center" }}>
               Already have an account?{" "}
               <button
                 type="button"
@@ -468,22 +495,74 @@ export default function AuthPage() {
                   color: "#D4A843",
                   cursor: "pointer",
                   padding: 0,
+                  fontWeight: 600,
                 }}
               >
-                Login with email and password
+                Login here
               </button>
             </p>
           </form>
         )}
 
-        <p style={{ marginTop: "16px", fontSize: "12px", color: "#8A7566" }}>
+        <p className="auth-guest-copy" style={{ marginTop: "24px", fontSize: "13px", color: "#8A7566", textAlign: "center", borderTop: "1px solid #3D3028", paddingTop: "16px" }}>
           Continue as guest? Go back to{" "}
-          <Link href="/menu" style={{ color: "#D4A843" }}>
+          <Link href="/menu" style={{ color: "#D4A843", fontWeight: 600 }}>
             menu
           </Link>
           .
         </p>
       </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .auth-page-shell {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+          }
+
+          .auth-card {
+            padding: 24px 20px !important;
+          }
+
+          .auth-toggle-row {
+            gap: 10px !important;
+          }
+
+          .auth-form {
+            gap: 14px !important;
+          }
+
+          .auth-guest-copy {
+            margin-top: 20px !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .auth-page-shell {
+            padding-top: 56px !important;
+            padding-left: 12px !important;
+            padding-right: 12px !important;
+          }
+
+          .auth-card { padding: 20px 16px !important; }
+          .auth-title { font-size: 26px !important; }
+          .password-grid { grid-template-columns: 1fr !important; }
+
+          .auth-toggle-row {
+            flex-direction: column !important;
+          }
+
+          .auth-toggle-row button,
+          .auth-form button {
+            width: 100% !important;
+          }
+
+          .auth-switch-copy,
+          .auth-guest-copy {
+            font-size: 12px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

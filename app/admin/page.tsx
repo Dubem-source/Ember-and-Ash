@@ -205,6 +205,7 @@ export default function AdminPage() {
   if (!isAuthenticated) {
     return (
       <div
+        className="page-shell admin-page-shell w-full max-w-full overflow-x-hidden"
         style={{
           paddingTop: "64px",
           minHeight: "100vh",
@@ -259,7 +260,8 @@ export default function AdminPage() {
               lineHeight: "1.6",
             }}
           >
-            Sign in to access the admin dashboard and manage orders, reservations, and menu items.
+            Sign in to access the admin dashboard and manage orders,
+            reservations, and menu items.
           </p>
           <Link href="/auth" style={{ textDecoration: "none" }}>
             <button
@@ -278,7 +280,14 @@ export default function AdminPage() {
               Sign In to Admin
             </button>
           </Link>
-          <Link href="/" style={{ textDecoration: "none", display: "block", marginTop: "16px" }}>
+          <Link
+            href="/"
+            style={{
+              textDecoration: "none",
+              display: "block",
+              marginTop: "16px",
+            }}
+          >
             <button
               style={{
                 width: "100%",
@@ -302,6 +311,7 @@ export default function AdminPage() {
 
   return (
     <div
+      className="admin-page-shell w-full max-w-full overflow-x-hidden"
       style={{
         paddingTop: "64px",
         minHeight: "100vh",
@@ -1374,9 +1384,84 @@ export default function AdminPage() {
       </div>
 
       <style>{`
-        @media (max-width: 900px) {
-          div[style*="grid-template-columns: 1fr 320px"] {
+        @media (max-width: 1200px) {
+          .admin-page-shell {
+            width: 100% !important;
+            overflow-x: hidden !important;
+          }
+
+          .admin-page-shell > div:first-of-type {
+            padding-left: 16px !important;
+            padding-right: 16px !important;
+          }
+
+          .admin-page-shell > div:last-of-type {
+            padding-left: 16px !important;
+            padding-right: 16px !important;
+          }
+
+          .admin-page-shell div[style*="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))"] {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+
+          .admin-page-shell div[style*="grid-template-columns: 1fr 320px"] {
             grid-template-columns: 1fr !important;
+          }
+
+          .admin-page-shell div[style*="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr))"] {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .admin-page-shell > div:first-of-type {
+            padding: 16px 12px !important;
+          }
+
+          .admin-page-shell > div:last-of-type {
+            padding-left: 12px !important;
+            padding-right: 12px !important;
+          }
+
+          .admin-page-shell > div:last-of-type > div:first-child {
+            overflow-x: auto !important;
+            padding-bottom: 8px !important;
+          }
+
+          .admin-page-shell > div:last-of-type > div:first-child button {
+            padding: 10px 14px !important;
+            font-size: 13px !important;
+          }
+
+          .admin-page-shell div[style*="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))"],
+          .admin-page-shell div[style*="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr))"],
+          .admin-page-shell div[style*="grid-template-columns: 1fr 320px"] {
+            grid-template-columns: 1fr !important;
+          }
+
+          .admin-page-shell div[style*="padding: 24px"] {
+            padding: 20px !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .admin-page-shell > div:first-of-type {
+            padding: 14px 10px !important;
+          }
+
+          .admin-page-shell > div:last-of-type {
+            padding-left: 10px !important;
+            padding-right: 10px !important;
+          }
+
+          .admin-page-shell div[style*="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))"],
+          .admin-page-shell div[style*="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr))"],
+          .admin-page-shell div[style*="grid-template-columns: 1fr 320px"] {
+            grid-template-columns: 1fr !important;
+          }
+
+          .admin-page-shell div[style*="padding: 24px"] {
+            padding: 16px !important;
           }
         }
       `}</style>

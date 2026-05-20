@@ -18,11 +18,11 @@ export default function MenuPage() {
   });
   return (
     <div
-      className="page-shell"
+      className="page-shell menu-page-shell w-full max-w-full overflow-x-hidden"
       style={{ paddingTop: "64px", minHeight: "100vh" }}
     >
       <div
-        className="section-shell"
+        className="section-shell menu-hero w-full max-w-full"
         style={{
           background: "#221C16",
           borderBottom: "1px solid #3D3028",
@@ -34,7 +34,7 @@ export default function MenuPage() {
             Fire-crafted dishes
           </p>
           <h1
-            className="font-display"
+            className="font-display menu-title"
             style={{
               fontSize: "48px",
               fontWeight: 900,
@@ -45,6 +45,7 @@ export default function MenuPage() {
             Our Menu
           </h1>
           <div
+            className="menu-search-wrapper w-full max-w-full"
             style={{
               position: "relative",
               maxWidth: "480px",
@@ -62,7 +63,7 @@ export default function MenuPage() {
               }}
             />
             <input
-              className="input-field"
+              className="input-field w-full max-w-full"
               type="text"
               placeholder="Search dishes..."
               value={search}
@@ -74,7 +75,7 @@ export default function MenuPage() {
         </div>
       </div>
       <div
-        className="section-shell"
+        className="section-shell menu-content w-full max-w-full"
         style={{ maxWidth: "1200px", margin: "0 auto", padding: "40px 24px" }}
       >
         {filtered.length === 0 ? (
@@ -107,6 +108,7 @@ export default function MenuPage() {
               found
             </p>
             <div
+              className="mobile-grid-1 menu-grid"
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
@@ -120,6 +122,23 @@ export default function MenuPage() {
           </>
         )}
       </div>
+      <style>{`
+        @media (max-width: 640px) {
+          .menu-page-shell { padding-left: 0 !important; padding-right: 0 !important; }
+          .menu-hero { padding: 28px 14px 20px !important; }
+          .menu-title { font-size: 34px !important; margin-bottom: 20px !important; }
+          .menu-search-wrapper { max-width: 100% !important; }
+          .menu-content { padding: 20px 14px !important; }
+          .menu-grid { grid-template-columns: 1fr !important; }
+          .menu-search-wrapper input { width: 100% !important; max-width: 100% !important; }
+          .menu-search-wrapper button { width: 100% !important; }
+        }
+        @media (max-width: 480px) {
+          .menu-hero { padding: 24px 12px 18px !important; }
+          .menu-title { font-size: 30px !important; }
+          .menu-content { padding: 18px 12px !important; }
+        }
+      `}</style>
     </div>
   );
 }
