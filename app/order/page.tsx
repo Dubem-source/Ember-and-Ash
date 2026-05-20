@@ -265,7 +265,7 @@ export default function OrderPage() {
             Checkout
           </p>
           <h1
-            className="font-display"
+            className="font-display order-title"
             style={{ fontSize: "40px", fontWeight: 800, color: "#F5EDD8" }}
           >
             Your Order
@@ -274,7 +274,7 @@ export default function OrderPage() {
 
         {/* Steps */}
         <div
-          className="mobile-stack mobile-small-gap"
+          className="mobile-stack mobile-small-gap order-steps"
           style={{ display: "flex", gap: "0", marginBottom: "40px" }}
         >
           {(["cart", "details", "payment"] as Step[]).map((s, i) => {
@@ -322,6 +322,7 @@ export default function OrderPage() {
                     {done ? "✓" : i + 1}
                   </div>
                   <span
+                    className="order-step-label"
                     style={{
                       fontSize: "13px",
                       fontWeight: active ? 600 : 400,
@@ -414,6 +415,7 @@ export default function OrderPage() {
                         Order Type
                       </p>
                       <div
+                        className="order-type-options"
                         style={{
                           display: "flex",
                           gap: "10px",
@@ -446,6 +448,7 @@ export default function OrderPage() {
                           <button
                             key={val}
                             onClick={() => setOrderType(val)}
+                            className="order-type-btn"
                             style={{
                               padding: "10px 20px",
                               borderRadius: "8px",
@@ -498,6 +501,7 @@ export default function OrderPage() {
                         {items.map((item) => (
                           <div
                             key={item.id}
+                            className="cart-item-row"
                             style={{
                               display: "flex",
                               gap: "14px",
@@ -537,6 +541,7 @@ export default function OrderPage() {
                               </p>
                             </div>
                             <div
+                              className="cart-item-controls"
                               style={{
                                 display: "flex",
                                 alignItems: "center",
@@ -621,6 +626,7 @@ export default function OrderPage() {
                     </div>
 
                     <div
+                      className="order-action-row"
                       style={{
                         display: "flex",
                         gap: "12px",
@@ -700,6 +706,7 @@ export default function OrderPage() {
                   }}
                 >
                   <div
+                    className="details-grid"
                     style={{
                       display: "grid",
                       gridTemplateColumns: "1fr 1fr",
@@ -803,6 +810,7 @@ export default function OrderPage() {
                   )}
                 </div>
                 <div
+                  className="order-action-row"
                   style={{ display: "flex", gap: "12px", marginTop: "24px" }}
                 >
                   <button
@@ -1033,6 +1041,7 @@ export default function OrderPage() {
                       />
                     </div>
                     <div
+                      className="details-grid"
                       style={{
                         display: "grid",
                         gridTemplateColumns: "1fr 1fr",
@@ -1271,7 +1280,7 @@ export default function OrderPage() {
                   </div>
                 )}
 
-                <div style={{ display: "flex", gap: "12px" }}>
+                <div className="order-action-row" style={{ display: "flex", gap: "12px" }}>
                   <button
                     onClick={() => setStep("details")}
                     className="btn-ghost"
@@ -1306,7 +1315,7 @@ export default function OrderPage() {
           {/* Summary sidebar */}
           <div>
             <div
-              className="card"
+              className="card order-summary-card"
               style={{ padding: "20px", position: "sticky", top: "80px" }}
             >
               <p
@@ -1425,6 +1434,51 @@ export default function OrderPage() {
       <style>{`
         @media (max-width: 768px) {
           .order-grid { grid-template-columns: 1fr !important; }
+          .order-title { font-size: 30px !important; }
+          .order-steps { margin-bottom: 24px !important; }
+          .order-step-label { font-size: 12px !important; }
+          .order-type-options { gap: 8px !important; }
+          .order-type-btn {
+            flex: 1 1 calc(50% - 8px);
+            justify-content: center;
+            padding: 10px 12px !important;
+          }
+          .cart-item-row {
+            display: grid !important;
+            grid-template-columns: 56px 1fr !important;
+            gap: 10px !important;
+            align-items: start !important;
+          }
+          .cart-item-controls {
+            grid-column: 1 / -1;
+            justify-content: space-between;
+            gap: 8px !important;
+            flex-wrap: wrap;
+          }
+          .details-grid {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+          }
+          .order-action-row {
+            flex-direction: column !important;
+            align-items: stretch !important;
+          }
+          .order-action-row button {
+            width: 100%;
+            justify-content: center;
+          }
+          .order-summary-card {
+            position: static !important;
+            top: auto !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .order-title { font-size: 26px !important; }
+          .order-step-label { display: none; }
+          .section-shell { padding: 28px 16px !important; }
+          .card { padding: 16px !important; }
+          .order-type-btn { flex: 1 1 100%; }
         }
       `}</style>
     </div>
