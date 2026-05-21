@@ -3,6 +3,7 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import Navbar from "@/components/layout/Navbar";
 import Cart from "@/components/order/Cart";
+import PageTransition from "@/components/layout/PageTransition";
 
 export const metadata: Metadata = {
   title: "Ember & Ash — Fire-crafted Flavours",
@@ -27,7 +28,9 @@ export default function RootLayout({
       <body className="grain">
         <Navbar />
         <Cart />
-        <main>{children}</main>
+        <main>
+          <PageTransition>{children}</PageTransition>
+        </main>
         <Toaster
           position="top-center"
           containerStyle={{ top: 80, zIndex: 9999 }}

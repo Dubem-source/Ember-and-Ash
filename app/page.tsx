@@ -95,7 +95,7 @@ export default function HomePage() {
             width: "100%",
           }}
         >
-          <p className="section-label" style={{ marginBottom: "24px" }}>
+          <p className="section-label " style={{marginTop: "13px", marginBottom: "24px" }}>
             🔥 Now accepting orders
           </p>
           <h1
